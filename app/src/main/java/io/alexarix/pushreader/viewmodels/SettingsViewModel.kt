@@ -1,12 +1,9 @@
 package io.alexarix.pushreader.viewmodels
 
 import android.app.Application
-import android.content.Context
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -18,6 +15,7 @@ import io.alexarix.pushreader.MainDispatcher
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
 import kotlinx.coroutines.launch
+import java.net.URL
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -26,6 +24,7 @@ data class AppItemData(
     val drawable: Drawable,
     val name: String,
     val packageName: String,
+    val isToggled: Boolean
 )
 
 @HiltViewModel
@@ -49,14 +48,15 @@ class SettingsViewModel @Inject constructor(
             val pm = context.packageManager
             val apps = repo.getInstalledApps(context)
             _appList.value = apps
-                .filter { it != null && it.name != null && it.packageName != null}
+                .filter { it != null && it.name != null && it.packageName != null }
                 .map {
                     AppItemData(
-                    drawable = it.loadIcon(pm),
-//                    name = context.getAppName()?.toString() ?: "",
-                    name = it.loadLabel(pm)?.toString() ?: "",
-                    packageName = it.packageName
-                ) }
+                        drawable = it.loadIcon(pm),
+                        name = it.loadLabel(pm)?.toString() ?: "",
+                        packageName = it.packageName,
+                        isToggled = SPM.savingPackages.contains(it.packageName)
+                    )
+                }
                 .sortedBy { it.name }
             _isLoading.value = false
         }
@@ -95,5 +95,32 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleUniqueByTicker(value: Boolean) {
         repo.toggleUniqueByTicker(value)
+    }
+
+    fun setUrl(url: String) {
+        "--> Parsing url: $url".e
+
+        parseUrl(url)?.let {
+            SPM.protocol = it.protocol.trim()
+            SPM.host = it.host.trim()
+            SPM.port = if (it.port == -1) 443 else it.port
+            SPM.path = it.path.trim()
+            SPM.url = "${SPM.protocol}://${SPM.host}:${SPM.port}${SPM.path}"
+
+            ("Url parsed: \n" +
+                    "  host: ${SPM.host} \n" +
+                    "  port: ${SPM.port} \n" +
+                    "  port: ${SPM.path} \n" +
+                    "  Result url: ${SPM.host}:${SPM.port}${SPM.path}").e
+            "it.protocol.trim(): ${it.protocol.trim()}".e
+        }
+    }
+
+    private fun parseUrl(urlString: String): URL? {
+        return try {
+            URL(urlString)
+        } catch (e: Exception) {
+            null
+        }
     }
 }

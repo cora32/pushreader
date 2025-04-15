@@ -7,8 +7,10 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.IntState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -18,12 +20,13 @@ import io.alexarix.pushreader.IoDispatcher
 import io.alexarix.pushreader.MainDispatcher
 import io.alexarix.pushreader.activity.MainActivity
 import io.alexarix.pushreader.repo.Repo
+import io.alexarix.pushreader.repo.SPM
+import io.alexarix.pushreader.repo.room.PRLogEntity
 import io.alexarix.pushreader.services.PushReaderService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
-import kotlin.text.contains
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -33,11 +36,40 @@ class MainViewModel @Inject constructor(
     @MainDispatcher private val uiDispatcher: CoroutineContext
 ) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
+    private val _processed = mutableIntStateOf(0)
+    private val _sent = mutableIntStateOf(0)
+    private val _notSent = mutableIntStateOf(0)
+    private val _uniqueInDB = mutableIntStateOf(0)
+    private val _errors = mutableIntStateOf(0)
+    private val _url = mutableStateOf("")
     private val _isPermissionGranted = mutableStateOf(false)
     private val _isServiceRunning = mutableStateOf(false)
+    private val _last100Items = mutableStateOf<List<PRLogEntity>>(listOf())
 
+    val processed: IntState = _processed
+    val sent: IntState = _sent
+    val notSent: IntState = _notSent
+    val uniqueInDB: IntState = _uniqueInDB
+    val errors: IntState = _errors
+    val url: State<String> = _url
     val isPermissionGranted: State<Boolean> = _isPermissionGranted
     val isServiceRunning: State<Boolean> = _isServiceRunning
+    val last100Items: State<List<PRLogEntity>> = _last100Items
+
+    init {
+        viewModelScope.launch(backgroundDispatcher) {
+            repo.getDataFlow().collect {
+                "--> Item collected: $it".e
+                _last100Items.value = repo.getLast100Items()
+            }
+        }
+        viewModelScope.launch(backgroundDispatcher) {
+            while (true) {
+                delay(2000L)
+                checkStatus()
+            }
+        }
+    }
 
     private fun checkPermissionStatus() {
         _isPermissionGranted.value = isNotificationListenerEnabled()
@@ -87,6 +119,26 @@ class MainViewModel @Inject constructor(
 
         checkPermissionStatus()
         checkAsync()
+        checkStatus()
+
+        attemptSendUnsent()
+    }
+
+    private fun attemptSendUnsent() {
+        viewModelScope.launch(backgroundDispatcher) {
+            repo.attemptSendUnsent()
+        }
+    }
+
+    private fun checkStatus() {
+        viewModelScope.launch(backgroundDispatcher) {
+            _sent.intValue = SPM.sent
+            _notSent.intValue = repo.countUnsent()
+            _processed.intValue = SPM.processed
+            _uniqueInDB.intValue = repo.countUnique()
+            _errors.intValue = SPM.errors
+            _url.value = SPM.url.trim()
+        }
     }
 
     override fun onCreate(owner: LifecycleOwner) {

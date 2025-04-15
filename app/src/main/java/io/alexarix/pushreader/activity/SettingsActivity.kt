@@ -1,14 +1,19 @@
 package io.alexarix.pushreader.activity
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +26,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -35,6 +42,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -46,10 +55,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -57,10 +72,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import dagger.hilt.android.AndroidEntryPoint
 import io.alexarix.pushreader.IconArrowLeft
+import io.alexarix.pushreader.repo.SPM
 import io.alexarix.pushreader.ui.theme.PushReaderTheme
 import io.alexarix.pushreader.viewmodels.AppItemData
 import io.alexarix.pushreader.viewmodels.SettingsViewModel
-import kotlin.getValue
+import java.net.URL
 
 
 @AndroidEntryPoint
@@ -87,6 +103,7 @@ class SettingsActivity : ComponentActivity() {
                     },
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
+
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
@@ -95,11 +112,24 @@ class SettingsActivity : ComponentActivity() {
                             .padding(bottom = 32.dp, top = 16.dp, start = 8.dp, end = 8.dp)
                     ) {
                         when (model.isLoading.value) {
-                            true -> Loader(width = 100.dp, height = 20.dp)
+                            true -> Loader(width = 100.dp, height = 10.dp)
                             false ->
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
                                 ) {
+                                    Text(
+                                        "Intercept notification from:", style = TextStyle(
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.W500
+                                        )
+                                    )
+                                    HorizontalDivider(
+                                        thickness = 0.5.dp,
+                                        color = Color(0xFFE4E4E4)
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    UrlField(model = model)
+                                    Spacer(Modifier.height(16.dp))
                                     Text(
                                         "Compare uniqueness by:", style = TextStyle(
                                             fontSize = 14.sp,
@@ -151,6 +181,106 @@ class SettingsActivity : ComponentActivity() {
 }
 
 @Composable
+fun UrlField(modifier: Modifier = Modifier, model: SettingsViewModel) {
+    var state by remember {
+        mutableStateOf(
+            SPM.url
+        )
+    }
+    var isError by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    fun processText(newText: String) {
+        state = newText
+        val isValid = isValidUrl(newText)
+        isError = !isValid
+
+        if (isValid) {
+            model.setUrl(newText)
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TextField(
+            value = state,
+            onValueChange = { newText ->
+                processText(newText)
+            },
+            label = { Text("Your receiver url here") },
+            isError = isError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Uri,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusRequester.freeFocus()
+                    keyboardController?.hide()
+                }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .focusRequester(focusRequester)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        CompositionLocalProvider(
+            LocalRippleConfiguration provides
+                    RippleConfiguration(
+                        rippleAlpha = RippleAlpha(
+                            pressedAlpha = 0.2f,
+                            focusedAlpha = 0.4f,
+                            draggedAlpha = 0.4f,
+                            hoveredAlpha = 0.4f
+                        ),
+                        color = Color.White
+                    )
+        ) {
+            TextButton(
+                onClick = {
+                    focusRequester.requestFocus()
+                    val newText = pasteFromClipboard(context)
+                    if (newText != null) {
+                        processText(newText)
+                    }
+                },
+                modifier = Modifier
+                    .width(70.dp)
+                    .height(IntrinsicSize.Max)
+                    .background(Color(0xFF00335F))
+            ) {
+                Text(
+                    "PASTE",
+                    style = TextStyle(
+                        color = Color.LightGray
+                    )
+                )
+            }
+        }
+    }
+}
+
+private fun pasteFromClipboard(context: Context): String? {
+    val clipboardManager =
+        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
+
+    if (clipboardManager != null && clipboardManager.hasPrimaryClip()) {
+        val clipData: ClipData? = clipboardManager.primaryClip
+        if (clipData != null && clipData.itemCount > 0) {
+            val item: ClipData.Item = clipData.getItemAt(0)
+            return item.text?.toString()
+        }
+    }
+    return null
+}
+
+@Composable
 fun UniquenessToggles(
     modifier: Modifier = Modifier,
     tickerToggle: (Boolean) -> Unit,
@@ -171,11 +301,36 @@ fun UniquenessToggles(
         )
 
     Column {
-        UniquenessToggle(name = "Ticker", colors = switchColors, onToggle = tickerToggle)
-        UniquenessToggle(name = "Title", colors = switchColors, onToggle = titleToggle)
-        UniquenessToggle(name = "BigTitle", colors = switchColors, onToggle = bigTitleToggle)
-        UniquenessToggle(name = "Text", colors = switchColors, onToggle = textToggle)
-        UniquenessToggle(name = "BigText", colors = switchColors, onToggle = bigTextToggle)
+        UniquenessToggle(
+            name = "Ticker",
+            colors = switchColors,
+            onToggle = tickerToggle,
+            isToggled = SPM.isUniqueByTicker
+        )
+        UniquenessToggle(
+            name = "Title",
+            colors = switchColors,
+            onToggle = titleToggle,
+            isToggled = SPM.isUniqueByTitle
+        )
+        UniquenessToggle(
+            name = "BigTitle",
+            colors = switchColors,
+            onToggle = bigTitleToggle,
+            isToggled = SPM.isUniqueByBigTitle
+        )
+        UniquenessToggle(
+            name = "Text",
+            colors = switchColors,
+            onToggle = textToggle,
+            isToggled = SPM.isUniqueByText
+        )
+        UniquenessToggle(
+            name = "BigText",
+            colors = switchColors,
+            onToggle = bigTextToggle,
+            isToggled = SPM.isUniqueByBigText
+        )
     }
 }
 
@@ -211,10 +366,11 @@ fun AppList(
 fun UniquenessToggle(
     modifier: Modifier = Modifier,
     name: String,
+    isToggled: Boolean,
     colors: SwitchColors,
     onToggle: (Boolean) -> Unit
 ) {
-    var isChecked by remember { mutableStateOf(false) }
+    var isChecked by remember { mutableStateOf(isToggled) }
     fun onChecked(value: Boolean) {
         isChecked = value
         onToggle(value)
@@ -225,7 +381,8 @@ fun UniquenessToggle(
             .toggleable(
                 value = isChecked,
                 onValueChange = { onChecked(it) },
-                role = Role.Switch,)
+                role = Role.Switch,
+            )
             .fillMaxWidth()
             .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -257,7 +414,7 @@ fun AppRow(
     colors: SwitchColors,
     onToggle: (String, Boolean) -> Unit
 ) {
-    var isChecked by remember { mutableStateOf(false) }
+    var isChecked by remember { mutableStateOf(item.isToggled) }
     fun onChecked(value: Boolean) {
         isChecked = value
         onToggle(item.packageName, value)
@@ -275,51 +432,51 @@ fun AppRow(
                     color = Color.White
                 )
     ) {
-    Row(
-        modifier = Modifier
-            .toggleable(
-                value = isChecked,
-                onValueChange = { onChecked(it) },
-                role = Role.Switch,
-            )
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
         Row(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .toggleable(
+                    value = isChecked,
+                    onValueChange = { onChecked(it) },
+                    role = Role.Switch,
+                )
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = item.drawable, contentDescription = item.name,
-                modifier = Modifier.size(40.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Column {
-                Text(
-                    text = item.name, style = TextStyle(
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.W400
-                    )
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = item.drawable, contentDescription = item.name,
+                    modifier = Modifier.size(40.dp)
                 )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = item.packageName.toString(), style = TextStyle(
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.W300
+                Spacer(Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = item.name, style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.W400
+                        )
                     )
-                )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = item.packageName.toString(), style = TextStyle(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W300
+                        )
+                    )
+                }
             }
-        }
-        Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(8.dp))
 
-        Switch(
-            checked = isChecked,
-            colors = colors,
-            onCheckedChange = {
-                onChecked(it)
-            },
-        )
-    }
+            Switch(
+                checked = isChecked,
+                colors = colors,
+                onCheckedChange = {
+                    onChecked(it)
+                },
+            )
+        }
     }
 }
 
@@ -343,7 +500,7 @@ fun Loader(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(modifier: Modifier = Modifier, onBack: () -> Unit) {
+private fun TopBar(modifier: Modifier = Modifier, onBack: () -> Unit) {
     TopAppBar(
         title = {
             Text(
@@ -373,4 +530,13 @@ fun TopBar(modifier: Modifier = Modifier, onBack: () -> Unit) {
             shape = RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp)
         )
     )
+}
+
+private fun isValidUrl(urlString: String): Boolean {
+    return try {
+        URL(urlString)
+        true
+    } catch (e: Exception) {
+        false
+    }
 }

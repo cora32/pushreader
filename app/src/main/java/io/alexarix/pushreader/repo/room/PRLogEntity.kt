@@ -25,4 +25,21 @@ data class PRLogEntity(
     val extraPictureStr: String? = null,
     val actions: List<String>? = null,
     val category: String? = null,
-)
+) {
+    override fun toString(): String {
+        return "packageName: $packageName\n" +
+                "tickerText: $tickerText\n" +
+                "title: $title\n" +
+                "bigTitle: $bigTitle\n" +
+                "text: $text\n" +
+                "bigText: $bigText\n" +
+                "smallIconStr: ${smallIconStr?.length}\n" +
+                "largeIconStr1: ${largeIconStr1?.length}\n" +
+                "largeIconStr2: ${largeIconStr2?.length}\n" +
+                "largeIconBig: ${largeIconBig?.length}\n" +
+                "extraPictureStr: ${extraPictureStr?.length}\n" +
+                "actions: $actions\n" +
+                "category: $category\n" +
+                ""
+    }
+}

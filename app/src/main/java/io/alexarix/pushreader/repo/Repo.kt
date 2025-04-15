@@ -3,9 +3,10 @@ package io.alexarix.pushreader.repo
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import io.alexarix.pushreader.viewmodels.e
+import io.alexarix.pushreader.BuildConfig
 import io.alexarix.pushreader.repo.room.PRDao
 import io.alexarix.pushreader.repo.room.PRLogEntity
+import io.alexarix.pushreader.viewmodels.e
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,6 +24,7 @@ class Repo @Inject constructor(
     }
 
     suspend fun sendData(entity: PRLogEntity) {
+        SPM.processed += 1
         val isProcessing = checkProcessing(entity)
 
         // Processing only selected packageNames
@@ -52,55 +54,94 @@ class Repo @Inject constructor(
         if (id != -1L) {
             "Sending notification from ${entity.packageName} to server... $entity".e
 
-            val isTransmitted = try {
-                transmitData(entity)
-            } catch (ex: Exception) {
-                "Could not send notification from ${entity.packageName} to server. $entity".e
-                ex.printStackTrace()
-                false
-            }
+            trySend(id = id, entity = entity)
+        }
+    }
 
-            "Notification from ${entity.packageName} successfully sent to server... $entity".e
+    private suspend fun trySend(id: Long, entity: PRLogEntity) {
+        val isTransmitted = try {
+            transmitData(entity)
+        } catch (ex: Exception) {
+            "Could not send notification from ${entity.packageName} to server. $entity".e
+            ex.printStackTrace()
+            false
+        }
 
-            // If transmitted successfully, set isSent to true
-            if (isTransmitted) {
-                setIsSent(id = id, value = true)
-            }
+        "Notification from ${entity.packageName} successfully sent to server... $entity".e
+
+        // If transmitted successfully, set isSent to true
+        if (isTransmitted) {
+            SPM.sent += 1
+            setIsSent(id = id, value = true)
+        }
+    }
+
+    suspend fun attemptSendUnsent() {
+        val unsent = dao.getUnsent()
+
+        for (entity in unsent) {
+            trySend(id = entity.uid.toLong(), entity = entity)
         }
     }
 
     private fun checkProcessing(entity: PRLogEntity): Boolean =
-        SPM.savingPackages.isEmpty() || entity.packageName?.let { packageName ->
-            SPM.savingPackages.contains(packageName)
-        } == true
+        entity.packageName != BuildConfig.APPLICATION_ID
+                && (
+                SPM.savingPackages.isEmpty()
+                        || entity.packageName?.let { packageName ->
+                    SPM.savingPackages.contains(packageName)
+                } == true)
 
 
     private suspend fun checkIsUnique(entity: PRLogEntity): Boolean {
-        val result = arrayOf(
-            if (SPM.isUniqueByTitle) isUniqueByTitle(entity) else true,
-            if (SPM.isUniqueByTicker) isUniqueByTicker(entity) else true,
-            if (SPM.isUniqueByBigTitle) isUniqueByBigTitle(entity) else true,
-            if (SPM.isUniqueByText) isUniqueByText(entity) else true,
-            if (SPM.isUniqueByBigText) isUniqueByBigText(entity) else true
-        )
+        if (!SPM.isUniqueByTitle
+            && !SPM.isUniqueByTicker
+            && !SPM.isUniqueByBigTitle
+            && !SPM.isUniqueByText
+            && !SPM.isUniqueByBigText
+        ) {
+            return isUniqueByTitle(entity)
+                    && isUniqueByTicker(entity)
+                    && isUniqueByBigTitle(entity)
+                    && isUniqueByText(entity)
+                    && isUniqueByBigText(entity)
+        } else {
+            val result = arrayOf(
+                if (SPM.isUniqueByTitle) isUniqueByTitle(entity) else true,
+                if (SPM.isUniqueByTicker) isUniqueByTicker(entity) else true,
+                if (SPM.isUniqueByBigTitle) isUniqueByBigTitle(entity) else true,
+                if (SPM.isUniqueByText) isUniqueByText(entity) else true,
+                if (SPM.isUniqueByBigText) isUniqueByBigText(entity) else true
+            )
 
-        return result.all { it == true }
+            return result.all { it == true }
+        }
     }
 
     private suspend fun isUniqueByTitle(entity: PRLogEntity): Boolean =
-        if (entity.title != null) dao.countUniqueByTitle(entity.title) == 0 else true
+        (if (entity.title != null) dao.countUniqueByTitle(entity.title) == 0 else true).apply {
+            "Checking uniqueness of $entity by title: $this".e
+        }
 
     private suspend fun isUniqueByTicker(entity: PRLogEntity): Boolean =
-        if (entity.tickerText != null) dao.countUniqueByTicker(entity.tickerText) == 0 else true
+        (if (entity.tickerText != null) dao.countUniqueByTicker(entity.tickerText) == 0 else true).apply {
+            "Checking uniqueness of $entity by Ticker: $this".e
+        }
 
     private suspend fun isUniqueByBigTitle(entity: PRLogEntity): Boolean =
-        if (entity.bigTitle != null) dao.countUniqueByBigTitle(entity.bigTitle) == 0 else true
+        (if (entity.bigTitle != null) dao.countUniqueByBigTitle(entity.bigTitle) == 0 else true).apply {
+            "Checking uniqueness of $entity by BigTitle: $this".e
+        }
 
     private suspend fun isUniqueByText(entity: PRLogEntity): Boolean =
-        if (entity.text != null) dao.countUniqueByText(entity.text) == 0 else true
+        (if (entity.text != null) dao.countUniqueByText(entity.text) == 0 else true).apply {
+            "Checking uniqueness of $entity by text: $this".e
+        }
 
     private suspend fun isUniqueByBigText(entity: PRLogEntity): Boolean =
-        if (entity.bigText != null) dao.countUniqueByBigText(entity.bigText) == 0 else true
+        (if (entity.bigText != null) dao.countUniqueByBigText(entity.bigText) == 0 else true).apply {
+            "Checking uniqueness of $entity by BigText: $this".e
+        }
 
     private suspend fun storeData(entity: PRLogEntity): Long = dao.insert(entity)
 
@@ -137,7 +178,7 @@ class Repo @Inject constructor(
                 "Text: ${SPM.isUniqueByText}\n" +
                 "BigText: ${SPM.isUniqueByBigText}\n" +
                 "Ticker: ${SPM.isUniqueByTicker}"
-        ).e
+                ).e
     }
 
     fun toggleUniqueByTitle(value: Boolean) {
@@ -164,4 +205,12 @@ class Repo @Inject constructor(
         SPM.isUniqueByTicker = value
         verboseUniques()
     }
+
+    suspend fun countUnique() = dao.countUnique()
+
+    suspend fun getLast100Items() = dao.getLast100Items().apply {
+        "--> Requesting 100 items...".e
+    }
+
+    suspend fun countUnsent() = dao.countUnsent()
 }

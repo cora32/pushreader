@@ -22,9 +22,11 @@ class HostSelectionInterceptor: Interceptor {
         var request = chain.request()
 
         val host: String = SPM.host
+        val port: Int = SPM.port
 
         val newUrl = request.url.newBuilder()
             .host(host)
+            .port(port)
             .addPathSegment(SPM.path)
             .build()
 
