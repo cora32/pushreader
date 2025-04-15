@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -18,6 +19,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
 import dagger.hilt.android.AndroidEntryPoint
 import io.alexarix.pushreader.R
+import io.alexarix.pushreader.activity.MainActivity
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
 import io.alexarix.pushreader.repo.room.PRLogEntity
@@ -25,6 +27,7 @@ import io.alexarix.pushreader.toBase64
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 
@@ -190,6 +193,18 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
         return START_STICKY
     }
 
+    private fun getPendingIntent(targetIntent: Intent): PendingIntent? {
+        val intentFlags =
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_ONE_SHOT
+
+        return PendingIntent.getActivity(
+            application,
+            UUID.randomUUID().hashCode(),
+            targetIntent,
+            intentFlags
+        )
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -203,10 +218,17 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
             manager.createNotificationChannel(serviceChannel)
         }
 
+        val targetIntent = Intent(
+            application,
+            MainActivity::class.java
+        )
+
+        val pendingIntent = getPendingIntent(targetIntent)
         val notification: Notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("PushReader is Active")
             .setContentText("PushReader is monitoring notifications.")
             .setSmallIcon(R.drawable.ic_stat_name)
+            .setContentIntent(pendingIntent)
             .build()
 
         startForeground(1, notification)

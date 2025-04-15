@@ -1,5 +1,4 @@
 import com.android.build.gradle.internal.tasks.FinalizeBundleTask
-import kotlin.jvm.java
 
 plugins {
     alias(libs.plugins.android.application)
@@ -21,8 +20,8 @@ android {
         applicationId = "io.alexarix.pushreader"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -31,7 +30,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isShrinkResources = true
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

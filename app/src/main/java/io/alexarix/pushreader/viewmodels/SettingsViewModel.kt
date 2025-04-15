@@ -2,7 +2,9 @@ package io.alexarix.pushreader.viewmodels
 
 import android.app.Application
 import android.graphics.drawable.Drawable
+import androidx.compose.runtime.IntState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -37,9 +39,11 @@ class SettingsViewModel @Inject constructor(
     DefaultLifecycleObserver {
     private val _isLoading = mutableStateOf<Boolean>(false)
     private val _appList = mutableStateOf<List<AppItemData>>(listOf())
+    private val _selectedApps = mutableIntStateOf(SPM.selectedApps.size)
 
     val appList: State<List<AppItemData>> = _appList
     val isLoading: State<Boolean> = _isLoading
+    val selectedApps: IntState = _selectedApps
 
     private fun getApps() {
         _isLoading.value = true
@@ -48,13 +52,13 @@ class SettingsViewModel @Inject constructor(
             val pm = context.packageManager
             val apps = repo.getInstalledApps(context)
             _appList.value = apps
-                .filter { it != null && it.name != null && it.packageName != null }
+                .filter { it != null && it.packageName != null }
                 .map {
                     AppItemData(
                         drawable = it.loadIcon(pm),
                         name = it.loadLabel(pm)?.toString() ?: "",
                         packageName = it.packageName,
-                        isToggled = SPM.savingPackages.contains(it.packageName)
+                        isToggled = SPM.selectedApps.contains(it.packageName)
                     )
                 }
                 .sortedBy { it.name }
@@ -74,6 +78,7 @@ class SettingsViewModel @Inject constructor(
             } else {
                 repo.removeApp(packageName)
             }
+            _selectedApps.intValue = SPM.selectedApps.size
         }
     }
 

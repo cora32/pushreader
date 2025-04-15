@@ -92,10 +92,10 @@ class SPM(val application: Application) {
                 field = newValue
             }
 
-        var savingPackages: Set<String> = setOf<String>()
+        var selectedApps: Set<String> = setOf<String>()
             get() = preferences.getStringSet(packagesNamesKey, setOf()) ?: setOf()
             set(newValue) {
-                preferences.edit() { putStringSet(packagesNamesKey, newValue) }
+                preferences.edit(commit = true) { putStringSet(packagesNamesKey, newValue) }
                 field = newValue
             }
 

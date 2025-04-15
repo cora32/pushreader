@@ -4,9 +4,11 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.runtime.IntState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
@@ -16,8 +18,10 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.alexarix.pushreader.App
 import io.alexarix.pushreader.IoDispatcher
 import io.alexarix.pushreader.MainDispatcher
+import io.alexarix.pushreader.R
 import io.alexarix.pushreader.activity.MainActivity
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
@@ -27,6 +31,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
+
+data class AppDisplayItem(val entity: PRLogEntity, val name: String, val icon: Drawable)
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -44,7 +50,7 @@ class MainViewModel @Inject constructor(
     private val _url = mutableStateOf("")
     private val _isPermissionGranted = mutableStateOf(false)
     private val _isServiceRunning = mutableStateOf(false)
-    private val _last100Items = mutableStateOf<List<PRLogEntity>>(listOf())
+    private val _last100Items = mutableStateOf<List<AppDisplayItem>>(listOf())
 
     val processed: IntState = _processed
     val sent: IntState = _sent
@@ -54,13 +60,14 @@ class MainViewModel @Inject constructor(
     val url: State<String> = _url
     val isPermissionGranted: State<Boolean> = _isPermissionGranted
     val isServiceRunning: State<Boolean> = _isServiceRunning
-    val last100Items: State<List<PRLogEntity>> = _last100Items
+    val last100Items: State<List<AppDisplayItem>> = _last100Items
 
     init {
+        val context = getApplication<App>()
         viewModelScope.launch(backgroundDispatcher) {
             repo.getDataFlow().collect {
                 "--> Item collected: $it".e
-                _last100Items.value = repo.getLast100Items()
+                _last100Items.value = repo.getLast100Items().toAppDisplayItem(context)
             }
         }
         viewModelScope.launch(backgroundDispatcher) {
@@ -68,6 +75,38 @@ class MainViewModel @Inject constructor(
                 delay(2000L)
                 checkStatus()
             }
+        }
+    }
+
+    private fun List<PRLogEntity>.toAppDisplayItem(app: App): List<AppDisplayItem> {
+        val pm = app.packageManager
+
+        return map {
+            it.packageName?.let { packageName ->
+                val appInfo = try {
+                    pm.getApplicationInfo(packageName, 0)
+                } catch (e: Exception) {
+                    null
+                }
+
+                if (appInfo != null) {
+                    AppDisplayItem(
+                        entity = it,
+                        name = appInfo.loadLabel(pm).toString(),
+                        icon = appInfo.loadIcon(pm)
+                    )
+                } else {
+                    AppDisplayItem(
+                        entity = it,
+                        name = "ERROR",
+                        icon = AppCompatResources.getDrawable(app, R.drawable.ic_stat_name)!!
+                    )
+                }
+            } ?: AppDisplayItem(
+                entity = it,
+                name = "ERROR",
+                icon = AppCompatResources.getDrawable(app, R.drawable.ic_stat_name)!!
+            )
         }
     }
 

@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
@@ -30,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,9 +51,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import dagger.hilt.android.AndroidEntryPoint
-import io.alexarix.pushreader.repo.room.PRLogEntity
 import io.alexarix.pushreader.ui.theme.PushReaderTheme
+import io.alexarix.pushreader.viewmodels.AppDisplayItem
 import io.alexarix.pushreader.viewmodels.MainViewModel
 import io.alexarix.pushreader.viewmodels.e
 import java.text.SimpleDateFormat
@@ -119,7 +123,7 @@ class MainActivity : ComponentActivity() {
                                         when (model.isPermissionGranted.value) {
                                             true -> Text(
                                                 "Granted",
-                                                style = TextStyle(color = Color.Green)
+                                                style = TextStyle(color = Color(0xFF19AC0E))
                                             )
 
                                             else -> Text(
@@ -148,7 +152,7 @@ class MainActivity : ComponentActivity() {
 
                                             else -> Text(
                                                 model.url.value.trim(),
-                                                style = TextStyle(color = Color.Green)
+                                                style = TextStyle(color = Color(0xFF19AC0E))
                                             )
                                         }
                                     }
@@ -224,7 +228,9 @@ class MainActivity : ComponentActivity() {
                                         "${model.notSent.intValue}",
                                         style = TextStyle(
                                             fontWeight = FontWeight.W500,
-                                            color = if (model.notSent.intValue == 0) Color.Green else Color.Red,
+                                            color = if (model.notSent.intValue == 0) Color(
+                                                0xFF19AC0E
+                                            ) else Color.Red,
                                         )
                                     )
                                 }
@@ -245,7 +251,7 @@ class MainActivity : ComponentActivity() {
                                         "${model.errors.intValue}",
                                         style = TextStyle(
                                             fontWeight = FontWeight.W500,
-                                            color = if (model.errors.intValue == 0) Color.Green else Color.Red,
+                                            color = if (model.errors.intValue == 0) Color(0xFF19AC0E) else Color.Red,
                                         )
                                     )
                                 }
@@ -263,7 +269,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     HorizontalDivider(
                                         thickness = 0.5.dp,
-                                        color = Color(0xFFE4E4E4)
+                                        color = MaterialTheme.colorScheme.outline
                                     )
                                     Box(
                                         contentAlignment = Alignment.Center,
@@ -287,7 +293,7 @@ class MainActivity : ComponentActivity() {
                                 Column() {
                                     HorizontalDivider(
                                         thickness = 0.5.dp,
-                                        color = Color(0xFFE4E4E4)
+                                        color = MaterialTheme.colorScheme.outline
                                     )
                                     Spacer(Modifier.height(8.dp))
 
@@ -310,7 +316,8 @@ class MainActivity : ComponentActivity() {
                                                 textAlign = TextAlign.Center,
                                                 style = TextStyle(
                                                     fontWeight = FontWeight.W300,
-                                                    fontSize = 15.sp
+                                                    fontSize = 15.sp,
+                                                    color = Color.White
                                                 )
                                             )
                                         }
@@ -389,11 +396,11 @@ private fun Stats(
     Column(modifier = Modifier.padding(top = 32.dp, bottom = 16.dp)) {
         Text(
             if (isPermissionGranted) "Permission granted" else "Permission denied",
-            color = if (isPermissionGranted) Color.Green else Color.Red
+            color = if (isPermissionGranted) Color(0xFF19AC0E) else Color.Red
         )
 //        Text(
 //            if (isServiceRunning) "Service is running" else "Service is not running",
-//            color = if (isServiceRunning) Color.Green else Color.Red
+//            color = if (isServiceRunning) Color(0xFF19AC0E) else Color.Red
 //        )
     }
 }
@@ -440,88 +447,111 @@ private fun TopBar(modifier: Modifier = Modifier, onSettings: () -> Unit) {
 }
 
 @Composable
-fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: PRLogEntity) {
+fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
     Column {
         Text(
-            text = "Date: ${sdf.format(item.timestamp)}",
+            text = "${sdf.format(item.entity.timestamp)}",
             textAlign = TextAlign.Start,
             style = TextStyle(
                 fontSize = 14.sp,
-                color = Color.White
-            )
+                fontWeight = FontWeight.W700
+            ),
+            modifier = Modifier.align(Alignment.End)
         )
-        Text(
-            text = "PackageName: ${item.packageName}",
-            textAlign = TextAlign.Start,
-            style = TextStyle(
-                fontSize = 14.sp,
-                color = Color.White
+        Row(
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            AsyncImage(
+                model = item.icon, contentDescription = item.name,
+                modifier = Modifier.size(30.dp)
             )
-        )
+            Spacer(Modifier.width(8.dp))
+            Column {
+                Text(
+                    text = item.name,
+                    textAlign = TextAlign.Start,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W500
+                    )
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = "${item.entity.packageName}",
+                    textAlign = TextAlign.Start,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W500
+                    )
+                )
+            }
+        }
         Column(modifier = Modifier.padding(8.dp)) {
 
             Text(
-                text = "Ticker: ${item.tickerText}",
+                text = "Ticker: ${item.entity.tickerText}",
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White
+                    fontWeight = FontWeight.W400
                 )
             )
 
             Text(
-                text = "Text: ${item.text}",
+                text = "Text: ${item.entity.text}",
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White
+                    fontWeight = FontWeight.W400
                 )
             )
             Text(
-                text = "BigText: ${item.bigText}",
+                text = "BigText: ${item.entity.bigText}",
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White
+                    fontWeight = FontWeight.W400
                 )
             )
             Text(
-                text = "Title: ${item.title}",
+                text = "Title: ${item.entity.title}",
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White
+                    fontWeight = FontWeight.W400
                 )
             )
             Text(
-                text = "BigTitle: ${item.bigTitle}",
+                text = "BigTitle: ${item.entity.bigTitle}",
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White
+                    fontWeight = FontWeight.W400
                 )
             )
             Text(
-                text = "Buttons: ${item.actions?.joinToString(" ")}",
+                text = "Buttons: ${item.entity.actions?.joinToString(" ")}",
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White
+                    fontWeight = FontWeight.W400
                 )
             )
             Text(
-                text = "Category: ${item.category}",
+                text = "Category: ${item.entity.category}",
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White
+                    fontWeight = FontWeight.W400
                 )
             )
 
         }
         HorizontalDivider(
             thickness = 0.4.dp,
-            color = Color(0xFFE4E4E4)
+            color = MaterialTheme.colorScheme.outline
         )
     }
 }

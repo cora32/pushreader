@@ -24,8 +24,8 @@ class Repo @Inject constructor(
     }
 
     suspend fun sendData(entity: PRLogEntity) {
-        SPM.processed += 1
         val isProcessing = checkProcessing(entity)
+        SPM.processed += 1
 
         // Processing only selected packageNames
         if (!isProcessing) {
@@ -59,6 +59,11 @@ class Repo @Inject constructor(
     }
 
     private suspend fun trySend(id: Long, entity: PRLogEntity) {
+        if (SPM.url.isEmpty()) {
+            "URL is empty! Doing nothing.".e
+            return
+        }
+
         "Sending $entity to server... ".e
 
         val isTransmitted = try {
@@ -93,9 +98,9 @@ class Repo @Inject constructor(
     private fun checkProcessing(entity: PRLogEntity): Boolean =
         entity.packageName != BuildConfig.APPLICATION_ID
                 && (
-                SPM.savingPackages.isEmpty()
+                SPM.selectedApps.isEmpty()
                         || entity.packageName?.let { packageName ->
-                    SPM.savingPackages.contains(packageName)
+                    SPM.selectedApps.contains(packageName)
                 } == true)
 
 
@@ -164,14 +169,14 @@ class Repo @Inject constructor(
     }
 
     fun addApp(packageName: String) {
-        SPM.savingPackages = SPM.savingPackages.toMutableSet().apply {
+        SPM.selectedApps = SPM.selectedApps.toMutableSet().apply {
             add(packageName)
             verbosePackages(this)
         }
     }
 
     fun removeApp(packageName: String) {
-        SPM.savingPackages = SPM.savingPackages.toMutableSet().apply {
+        SPM.selectedApps = SPM.selectedApps.toMutableSet().apply {
             remove(packageName)
             verbosePackages(this)
         }

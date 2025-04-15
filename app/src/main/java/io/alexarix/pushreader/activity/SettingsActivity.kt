@@ -24,10 +24,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -36,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RippleConfiguration
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -103,6 +106,7 @@ class SettingsActivity : ComponentActivity() {
                     },
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
+                    val state = rememberScrollState()
 
                     Box(
                         contentAlignment = Alignment.Center,
@@ -115,17 +119,19 @@ class SettingsActivity : ComponentActivity() {
                             true -> Loader(width = 100.dp, height = 10.dp)
                             false ->
                                 Column(
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .verticalScroll(state),
                                 ) {
                                     Text(
-                                        "Intercept notification from:", style = TextStyle(
+                                        "Receiver Url:", style = TextStyle(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.W500
                                         )
                                     )
                                     HorizontalDivider(
                                         thickness = 0.5.dp,
-                                        color = Color(0xFFE4E4E4)
+                                        color = MaterialTheme.colorScheme.outline
                                     )
                                     Spacer(Modifier.height(8.dp))
                                     UrlField(model = model)
@@ -138,7 +144,7 @@ class SettingsActivity : ComponentActivity() {
                                     )
                                     HorizontalDivider(
                                         thickness = 0.5.dp,
-                                        color = Color(0xFFE4E4E4)
+                                        color = MaterialTheme.colorScheme.outline
                                     )
                                     UniquenessToggles(
                                         tickerToggle = { model.toggleUniqueByTicker(it) },
@@ -149,18 +155,21 @@ class SettingsActivity : ComponentActivity() {
                                     )
                                     Spacer(Modifier.height(16.dp))
                                     Text(
-                                        "Intercept notification from:", style = TextStyle(
+                                        "Intercept notification from: (selected: ${model.selectedApps.intValue})",
+                                        style = TextStyle(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.W500
                                         )
                                     )
                                     HorizontalDivider(
                                         thickness = 0.5.dp,
-                                        color = Color(0xFFE4E4E4)
+                                        color = MaterialTheme.colorScheme.outline
                                     )
                                     AppList(
                                         appList = model.appList.value,
-                                        modifier = Modifier.fillMaxSize()
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(350.dp)
                                     ) { packageName, enabled ->
                                         model.toggleApp(packageName, enabled)
                                     }
@@ -486,7 +495,7 @@ fun Loader(
     width: Dp,
     height: Dp,
     color: Color = Color.Red,
-    trackColor: Color = Color.Green
+    trackColor: Color = Color(0xFF19AC0E)
 ) {
     LinearWavyProgressIndicator(
         modifier = Modifier
