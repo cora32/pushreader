@@ -2,6 +2,7 @@ package io.alexarix.pushreader.activity
 
 import android.Manifest
 import android.Manifest.permission.POST_NOTIFICATIONS
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -14,8 +15,10 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,6 +38,7 @@ import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import io.alexarix.pushreader.viewmodels.MainViewModel
 import io.alexarix.pushreader.ui.theme.PushReaderTheme
+import io.alexarix.pushreader.viewmodels.e
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -90,20 +94,20 @@ class MainActivity : ComponentActivity() {
                                         )
                                     )
                                 }
-//                                Spacer(Modifier.height(8.dp))
-//                                TextButton(
-//                                    enabled = model.isPermissionGranted.value,
-//                                    onClick = {
-//                                    }
-//                                ) {
-//                                    Text(
-//                                        "Start PushReader service", textAlign = TextAlign.Center,
-//                                        style = TextStyle(
-//                                            fontWeight = FontWeight.W300,
-//                                            fontSize = 15.sp
-//                                        )
-//                                    )
-//                                }
+                                Spacer(Modifier.height(8.dp))
+                                TextButton(
+                                    onClick = {
+                                        this@MainActivity.startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                                    }
+                                ) {
+                                    Text(
+                                        "App Settings", textAlign = TextAlign.Center,
+                                        style = TextStyle(
+                                            fontWeight = FontWeight.W300,
+                                            fontSize = 15.sp
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
@@ -135,15 +139,20 @@ fun RuntimePermissionsDialog(
 
     val permissionsToRequest = mutableListOf<String>()
     for (permission in permissions) {
+        "--> Checking perm: $permission".e
         if (ContextCompat.checkSelfPermission(
                 LocalContext.current,
                 permission
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            "--> Perm: $permission is DENIED".e
             permissionsToRequest.add(permission)
+        } else {
+            "--> Perm: $permission is GRANTED".e
         }
     }
 
+    "--> Perm size: ${permissionsToRequest.size} ".e
     if(permissionsToRequest.isEmpty()) return
 
     val requestLocationPermissionLauncher =

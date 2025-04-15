@@ -1,12 +1,10 @@
 package io.alexarix.pushreader.viewmodels
 
-import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
-import android.content.Intent
-import android.os.Build
-import android.provider.Settings
-import android.util.Log
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import androidx.lifecycle.AndroidViewModel
@@ -14,116 +12,88 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.alexarix.pushreader.activity.MainActivity
+import io.alexarix.pushreader.App
+import io.alexarix.pushreader.IoDispatcher
+import io.alexarix.pushreader.MainDispatcher
 import io.alexarix.pushreader.repo.Repo
-import io.alexarix.pushreader.services.PushReaderService
-import kotlinx.coroutines.delay
+import io.alexarix.pushreader.repo.SPM
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.text.contains
+import kotlin.coroutines.CoroutineContext
 
-//data class AppListItem(val packageName: String, val isToggled: Boolean)
+
+data class AppItemData(
+    val drawable: Drawable,
+    val name: String,
+    val packageName: String,
+)
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     application: Application,
-    val repo: Repo
+    val repo: Repo,
+    @IoDispatcher private val backgroundDispatcher: CoroutineContext,
+    @MainDispatcher private val uiDispatcher: CoroutineContext
 ) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
-    private val toggleMap = mutableMapOf<String, Boolean>()
-    private val _appList = mutableStateOf<AppListItem>(listOf())
-    private val _isServiceRunning = mutableStateOf(false)
+    private val _isLoading = mutableStateOf<Boolean>(false)
+    private val _appList = mutableStateOf<List<AppItemData>>(listOf())
 
-    val isPermissionGranted: State<Boolean> = _isPermissionGranted
-    val isServiceRunning: State<Boolean> = _isServiceRunning
+    val appList: State<List<AppItemData>> = _appList
+    val isLoading: State<Boolean> = _isLoading
 
-    private fun checkPermissionStatus() {
-        _isPermissionGranted.value = isNotificationListenerEnabled()
-    }
-
-    private fun checkServiceStatus() {
-        _isServiceRunning.value = isServiceRunning()
-    }
-
-    private fun isNotificationListenerEnabled(): Boolean {
-        val context = getApplication<Application>()
-
-        val packageName = context.packageName
-        val enabledListeners = Settings.Secure.getString(
-            context.contentResolver,
-            "enabled_notification_listeners"
-        )
-
-        "EnabledListeners: $enabledListeners".e
-        "Contains ${packageName}: ${enabledListeners.contains(packageName)}".e
-
-        return enabledListeners != null && enabledListeners.contains(packageName)
-    }
-
-    private fun isServiceRunning(): Boolean {
-        val result = getRunningServicesForApp()
-
-        "We have ${result.size} running services...".e
-        result.forEach {
-            ("Service: ${it.clientPackage} " +
-                    "${it.service.packageName} " +
-                    "${it.service.className} ").e
+    private fun getApps() {
+        _isLoading.value = true
+        viewModelScope.launch(backgroundDispatcher) {
+            val context = getApplication<App>()
+            val pm = context.packageManager
+            val apps = repo.getInstalledApps(context)
+            _appList.value = apps
+                .filter { it != null && it.name != null && it.packageName != null}
+                .map {
+                    AppItemData(
+                    drawable = it.loadIcon(pm),
+//                    name = context.getAppName()?.toString() ?: "",
+                    name = it.loadLabel(pm)?.toString() ?: "",
+                    packageName = it.packageName
+                ) }
+                .sortedBy { it.name }
+            _isLoading.value = false
         }
-
-        return result.map { it.service.className }.contains(PushReaderService::class.java.name)
-    }
-
-    private fun getRunningServicesForApp(): List<ActivityManager.RunningServiceInfo> {
-        val context = getApplication<Application>()
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-
-        return activityManager.getRunningServices(Integer.MAX_VALUE)
     }
 
     override fun onResume(owner: LifecycleOwner) {
         super.onResume(owner)
+        getApps()
+    }
 
-        checkPermissionStatus()
-        viewModelScope.launch {
-            delay(1000L)
-            checkServiceStatus()
+    fun toggleApp(packageName: String, isToggled: Boolean) {
+        viewModelScope.launch(backgroundDispatcher) {
+            if (isToggled) {
+                repo.addApp(packageName)
+            } else {
+                repo.removeApp(packageName)
+            }
         }
     }
 
-    override fun onCreate(owner: LifecycleOwner) {
-        super.onCreate(owner)
-
-        startService(owner as MainActivity)
+    fun toggleUniqueByTitle(value: Boolean) {
+        repo.toggleUniqueByTitle(value)
     }
 
-    fun startService(activity: MainActivity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity.startForegroundService(
-                Intent(
-                    activity,
-                    PushReaderService::class.java
-                )
-            )
-        } else {
-            activity.startService(
-                Intent(
-                    activity,
-                    PushReaderService::class.java
-                )
-            )
-        }
-
-        viewModelScope.launch {
-            delay(1000L)
-            checkServiceStatus()
-        }
+    fun toggleUniqueByBigTitle(value: Boolean) {
+        repo.toggleUniqueByBigTitle(value)
     }
 
-    fun requestNotificationListenerAccess(context: MainActivity) {
-        val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-        context.startActivity(intent)
+    fun toggleUniqueByText(value: Boolean) {
+        repo.toggleUniqueByText(value)
+    }
+
+    fun toggleUniqueByBigText(value: Boolean) {
+        repo.toggleUniqueByBigText(value)
+    }
+
+    fun toggleUniqueByTicker(value: Boolean) {
+        repo.toggleUniqueByTicker(value)
     }
 }
-
-val String.e
-    get() = Log.e("PushReader", this)

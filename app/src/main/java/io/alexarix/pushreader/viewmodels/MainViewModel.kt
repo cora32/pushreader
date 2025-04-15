@@ -14,18 +14,23 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.alexarix.pushreader.IoDispatcher
+import io.alexarix.pushreader.MainDispatcher
 import io.alexarix.pushreader.activity.MainActivity
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.services.PushReaderService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 import kotlin.text.contains
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     application: Application,
-    val repo: Repo
+    val repo: Repo,
+    @IoDispatcher private val backgroundDispatcher: CoroutineContext,
+    @MainDispatcher private val uiDispatcher: CoroutineContext
 ) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
     private val _isPermissionGranted = mutableStateOf(false)
@@ -81,10 +86,7 @@ class MainViewModel @Inject constructor(
         super.onResume(owner)
 
         checkPermissionStatus()
-        viewModelScope.launch {
-            delay(1000L)
-            checkServiceStatus()
-        }
+        checkAsync()
     }
 
     override fun onCreate(owner: LifecycleOwner) {
@@ -110,8 +112,12 @@ class MainViewModel @Inject constructor(
             )
         }
 
-        viewModelScope.launch {
-            delay(1000L)
+        checkAsync()
+    }
+
+    private fun checkAsync() {
+        viewModelScope.launch(backgroundDispatcher) {
+            delay(500L)
             checkServiceStatus()
         }
     }

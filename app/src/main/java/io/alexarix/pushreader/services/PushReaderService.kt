@@ -25,7 +25,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class PushReaderService @Inject constructor(
-    repo: Repo
 ) : NotificationListenerService() {
     val channelId = "pushreader_notification_channel"
 

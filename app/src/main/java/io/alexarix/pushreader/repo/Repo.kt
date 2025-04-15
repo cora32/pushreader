@@ -19,7 +19,7 @@ class Repo @Inject constructor(
 
     fun getInstalledApps(context: Context): List<ApplicationInfo> {
         val packageManager: PackageManager = context.packageManager
-        return packageManager.getInstalledApplications(PackageManager.GET_META_DATA).sortedBy { it.packageName }
+        return packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
     }
 
     suspend fun sendData(entity: PRLogEntity) {
@@ -70,7 +70,7 @@ class Repo @Inject constructor(
     }
 
     private fun checkProcessing(entity: PRLogEntity): Boolean =
-        entity.packageName?.let { packageName ->
+        SPM.savingPackages.isEmpty() || entity.packageName?.let { packageName ->
             SPM.savingPackages.contains(packageName)
         } == true
 
@@ -104,9 +104,64 @@ class Repo @Inject constructor(
 
     private suspend fun storeData(entity: PRLogEntity): Long = dao.insert(entity)
 
-    private suspend fun transmitData(entity: PRLogEntity): Boolean = restApi.saveData(entity).code() == 200
+    private suspend fun transmitData(entity: PRLogEntity): Boolean =
+        restApi.saveData(entity).code() == 200
 
     private suspend fun setIsSent(id: Long, value: Boolean) {
         dao.setIsSent(id = id, value = value)
+    }
+
+    fun addApp(packageName: String) {
+        SPM.savingPackages = SPM.savingPackages.toMutableSet().apply {
+            add(packageName)
+            verbosePackages(this)
+        }
+    }
+
+    fun removeApp(packageName: String) {
+        SPM.savingPackages = SPM.savingPackages.toMutableSet().apply {
+            remove(packageName)
+            verbosePackages(this)
+        }
+    }
+
+    private fun verbosePackages(packages: MutableSet<String>) {
+        val str = if (packages.isEmpty()) "all" else packages.toString()
+        "Current savingPackages: $str".e
+    }
+
+    private fun verboseUniques() {
+        ("Current uniques: \n" +
+                "Title: ${SPM.isUniqueByTitle}\n" +
+                "BigTitle: ${SPM.isUniqueByBigTitle}\n" +
+                "Text: ${SPM.isUniqueByText}\n" +
+                "BigText: ${SPM.isUniqueByBigText}\n" +
+                "Ticker: ${SPM.isUniqueByTicker}"
+        ).e
+    }
+
+    fun toggleUniqueByTitle(value: Boolean) {
+        SPM.isUniqueByTitle = value
+        verboseUniques()
+    }
+
+    fun toggleUniqueByBigTitle(value: Boolean) {
+        SPM.isUniqueByBigTitle = value
+        verboseUniques()
+    }
+
+    fun toggleUniqueByText(value: Boolean) {
+        SPM.isUniqueByText = value
+        verboseUniques()
+    }
+
+    fun toggleUniqueByBigText(value: Boolean) {
+        SPM.isUniqueByBigText = value
+        verboseUniques()
+    }
+
+    fun toggleUniqueByTicker(value: Boolean) {
+        SPM.isUniqueByTicker = value
+        verboseUniques()
     }
 }
