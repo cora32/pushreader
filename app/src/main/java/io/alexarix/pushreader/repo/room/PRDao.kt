@@ -39,7 +39,7 @@ interface PRDao {
     fun dataFlow(): Flow<PRLogEntity?>
 
     @Query("SELECT COUNT(title) FROM PRLogEntity")
-    suspend fun countUnique(): Int
+    suspend fun count(): Int
 
     @Query("SELECT COUNT(title) FROM PRLogEntity WHERE isSent = 0")
     suspend fun countUnsent(): Int

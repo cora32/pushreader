@@ -39,7 +39,7 @@ class MainViewModel @Inject constructor(
     private val _processed = mutableIntStateOf(0)
     private val _sent = mutableIntStateOf(0)
     private val _notSent = mutableIntStateOf(0)
-    private val _uniqueInDB = mutableIntStateOf(0)
+    private val _entriesInDB = mutableIntStateOf(0)
     private val _errors = mutableIntStateOf(0)
     private val _url = mutableStateOf("")
     private val _isPermissionGranted = mutableStateOf(false)
@@ -49,7 +49,7 @@ class MainViewModel @Inject constructor(
     val processed: IntState = _processed
     val sent: IntState = _sent
     val notSent: IntState = _notSent
-    val uniqueInDB: IntState = _uniqueInDB
+    val entriesInDB: IntState = _entriesInDB
     val errors: IntState = _errors
     val url: State<String> = _url
     val isPermissionGranted: State<Boolean> = _isPermissionGranted
@@ -117,11 +117,11 @@ class MainViewModel @Inject constructor(
     override fun onResume(owner: LifecycleOwner) {
         super.onResume(owner)
 
+        attemptSendUnsent()
+
         checkPermissionStatus()
         checkAsync()
         checkStatus()
-
-        attemptSendUnsent()
     }
 
     private fun attemptSendUnsent() {
@@ -135,7 +135,7 @@ class MainViewModel @Inject constructor(
             _sent.intValue = SPM.sent
             _notSent.intValue = repo.countUnsent()
             _processed.intValue = SPM.processed
-            _uniqueInDB.intValue = repo.countUnique()
+            _entriesInDB.intValue = repo.count()
             _errors.intValue = SPM.errors
             _url.value = SPM.url.trim()
         }

@@ -198,11 +198,11 @@ class MainActivity : ComponentActivity() {
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            "Unique in DB: ",
+                                            "Entries in DB: ",
                                             style = TextStyle(fontWeight = FontWeight.W500)
                                         )
                                         Text(
-                                            "${model.uniqueInDB.intValue}",
+                                            "${model.entriesInDB.intValue}",
                                             style = TextStyle(fontWeight = FontWeight.W500)
                                         )
                                     }
@@ -441,9 +441,9 @@ private fun TopBar(modifier: Modifier = Modifier, onSettings: () -> Unit) {
 
 @Composable
 fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: PRLogEntity) {
-    Column() {
+    Column {
         Text(
-            text = "Category: ${sdf.format(item.timestamp)}",
+            text = "Date: ${sdf.format(item.timestamp)}",
             textAlign = TextAlign.Start,
             style = TextStyle(
                 fontSize = 14.sp,

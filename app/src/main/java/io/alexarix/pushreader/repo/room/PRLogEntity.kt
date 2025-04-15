@@ -5,26 +5,27 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.Expose
 
 @Keep
 @Entity(indices = [Index(value = ["timestamp"], unique = true)])
 data class PRLogEntity(
     @PrimaryKey(autoGenerate = true) val uid: Int = 0,
-    val timestamp: Long = 0L,
-    @ColumnInfo(index = true) val packageName: String? = null,
-    @ColumnInfo(index = true) val tickerText: String? = null,
-    @ColumnInfo(index = true) val title: String? = null,
-    @ColumnInfo(index = true) val bigTitle: String? = null,
-    @ColumnInfo(index = true) val text: String? = null,
-    @ColumnInfo(index = true) val bigText: String? = null,
-    @ColumnInfo(index = true) val isSent: Boolean = false,
-    val smallIconStr: String? = null,
-    val largeIconStr1: String? = null,
-    val largeIconStr2: String? = null,
-    val largeIconBig: String? = null,
-    val extraPictureStr: String? = null,
-    val actions: List<String>? = null,
-    val category: String? = null,
+    @Expose val timestamp: Long = 0L,
+    @Expose @ColumnInfo(index = true) val packageName: String? = null,
+    @Expose @ColumnInfo(index = true) val tickerText: String? = null,
+    @Expose @ColumnInfo(index = true) val title: String? = null,
+    @Expose @ColumnInfo(index = true) val bigTitle: String? = null,
+    @Expose @ColumnInfo(index = true) val text: String? = null,
+    @Expose @ColumnInfo(index = true) val bigText: String? = null,
+    @Expose @ColumnInfo(index = true) val isSent: Boolean = false,
+    @Expose val smallIconStr: String? = null,
+    @Expose val largeIconStr1: String? = null,
+    @Expose val largeIconStr2: String? = null,
+    @Expose val largeIconBig: String? = null,
+    @Expose val extraPictureStr: String? = null,
+    @Expose val actions: List<String>? = null,
+    @Expose val category: String? = null,
 ) {
     override fun toString(): String {
         return "packageName: $packageName\n" +

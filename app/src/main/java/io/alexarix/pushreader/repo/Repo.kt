@@ -38,7 +38,7 @@ class Repo @Inject constructor(
         val isUnique = checkIsUnique(entity)
 
         // Saving only unique notifications
-        if (isUnique) {
+        if (!isUnique) {
             "Omitting copy of notification from ${entity.packageName}: $entity".e
             return
         }
@@ -59,6 +59,8 @@ class Repo @Inject constructor(
     }
 
     private suspend fun trySend(id: Long, entity: PRLogEntity) {
+        "Sending $entity to server... ".e
+
         val isTransmitted = try {
             transmitData(entity)
         } catch (ex: Exception) {
@@ -67,17 +69,21 @@ class Repo @Inject constructor(
             false
         }
 
-        "Notification from ${entity.packageName} successfully sent to server... $entity".e
-
         // If transmitted successfully, set isSent to true
         if (isTransmitted) {
+            "Notification from ${entity.packageName} successfully sent to server... $entity".e
             SPM.sent += 1
             setIsSent(id = id, value = true)
+        } else {
+            SPM.errors += 1
+            "Failed to transmit notification from ${entity.packageName}! $entity".e
         }
     }
 
     suspend fun attemptSendUnsent() {
+        "--> Attempting to send unsent entries...".e
         val unsent = dao.getUnsent()
+        "--> We have ${unsent.size} entries to send...".e
 
         for (entity in unsent) {
             trySend(id = entity.uid.toLong(), entity = entity)
@@ -145,8 +151,13 @@ class Repo @Inject constructor(
 
     private suspend fun storeData(entity: PRLogEntity): Long = dao.insert(entity)
 
-    private suspend fun transmitData(entity: PRLogEntity): Boolean =
-        restApi.saveData(entity).code() == 200
+    private suspend fun transmitData(entity: PRLogEntity): Boolean {
+        "Sending $entity to ${SPM.url}.".e
+        return restApi.sendData(
+            url = SPM.url,
+            data = entity
+        ).code() == 200
+    }
 
     private suspend fun setIsSent(id: Long, value: Boolean) {
         dao.setIsSent(id = id, value = value)
@@ -206,7 +217,7 @@ class Repo @Inject constructor(
         verboseUniques()
     }
 
-    suspend fun countUnique() = dao.countUnique()
+    suspend fun count() = dao.count()
 
     suspend fun getLast100Items() = dao.getLast100Items().apply {
         "--> Requesting 100 items...".e

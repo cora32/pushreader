@@ -11,9 +11,10 @@ import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.Url
 import java.io.File
 
 class HostSelectionInterceptor: Interceptor {
@@ -25,6 +26,7 @@ class HostSelectionInterceptor: Interceptor {
         val port: Int = SPM.port
 
         val newUrl = request.url.newBuilder()
+            .scheme(SPM.protocol)
             .host(host)
             .port(port)
             .addPathSegment(SPM.path)
@@ -42,10 +44,10 @@ fun getClient(directory: File): OkHttpClient {
     val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
         setLevel(HttpLoggingInterceptor.Level.BODY)
     }
-    val hostInterceptor = HostSelectionInterceptor()
+//    val hostInterceptor = HostSelectionInterceptor()
 
     return OkHttpClient.Builder()
-        .addInterceptor(hostInterceptor)
+//        .addInterceptor(hostInterceptor)
         .addInterceptor(httpLoggingInterceptor)
         .cache(
             Cache(
@@ -63,15 +65,16 @@ fun getRetrofit(context: Context): Retrofit = Retrofit.Builder()
             GsonBuilder().excludeFieldsWithoutExposeAnnotation().create()
         )
     )
-    .baseUrl("https://stub.com")
+    .baseUrl("https://unknown-networks.io/")
     .build()
 
 interface RestApi {
     @Headers(
         "Accept: application/json"
     )
-    @POST("api/saveData")
-    suspend fun saveData(
-        @Query("data") data: PRLogEntity,
+    @POST()
+    suspend fun sendData(
+        @Url url: String,
+        @Body data: PRLogEntity,
     ): retrofit2.Response<ResponseData>
 }
