@@ -519,6 +519,10 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: PRLogEntity) {
             )
 
         }
+        HorizontalDivider(
+            thickness = 0.4.dp,
+            color = Color(0xFFE4E4E4)
+        )
     }
 }
 
