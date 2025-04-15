@@ -18,7 +18,7 @@ data class PRLogEntity(
     @Expose @ColumnInfo(index = true) val bigTitle: String? = null,
     @Expose @ColumnInfo(index = true) val text: String? = null,
     @Expose @ColumnInfo(index = true) val bigText: String? = null,
-    @Expose @ColumnInfo(index = true) val isSent: Boolean = false,
+    @ColumnInfo(index = true) val isSent: Boolean = false,
     @Expose val smallIconStr: String? = null,
     @Expose val largeIconStr1: String? = null,
     @Expose val largeIconStr2: String? = null,
