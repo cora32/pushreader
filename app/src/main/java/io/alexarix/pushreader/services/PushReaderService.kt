@@ -229,6 +229,7 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
             .setContentText("PushReader is monitoring notifications.")
             .setSmallIcon(R.drawable.ic_stat_name)
             .setContentIntent(pendingIntent)
+            .setOngoing(true)
             .build()
 
         startForeground(1, notification)
