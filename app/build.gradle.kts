@@ -107,4 +107,12 @@ dependencies {
 
     //AppCompatResources
     implementation(libs.androidx.appcompat)
+
+    // Gson
+    implementation(libs.gson)
+
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
 }

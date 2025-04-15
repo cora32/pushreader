@@ -1,5 +1,6 @@
-package io.alexarix.pushreader
+package io.alexarix.pushreader.activity
 
+import android.Manifest
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.content.pm.PackageManager
 import android.os.Build
@@ -31,8 +32,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import dagger.hilt.android.AndroidEntryPoint
+import io.alexarix.pushreader.viewmodels.MainViewModel
 import io.alexarix.pushreader.ui.theme.PushReaderTheme
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     val model by viewModels<MainViewModel>()
 
@@ -106,7 +110,6 @@ class MainActivity : ComponentActivity() {
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         RuntimePermissionsDialog(
-                            POST_NOTIFICATIONS,
                             onPermissionDenied = {},
                             onPermissionGranted = {},
                         )
@@ -119,33 +122,44 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun RuntimePermissionsDialog(
-    permission: String,
     onPermissionGranted: () -> Unit,
     onPermissionDenied: () -> Unit,
 ) {
+    val permissions = mutableListOf<String>()
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        permissions.add(POST_NOTIFICATIONS)
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        permissions.add(Manifest.permission.QUERY_ALL_PACKAGES)
+    }
+
+    val permissionsToRequest = mutableListOf<String>()
+    for (permission in permissions) {
         if (ContextCompat.checkSelfPermission(
                 LocalContext.current,
                 permission
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            permissionsToRequest.add(permission)
+        }
+    }
 
-            val requestLocationPermissionLauncher =
-                rememberLauncherForActivityResult(
-                    ActivityResultContracts.RequestPermission()
-                ) { isGranted: Boolean ->
+    if(permissionsToRequest.isEmpty()) return
 
-                    if (isGranted) {
-                        onPermissionGranted()
-                    } else {
-                        onPermissionDenied()
-                    }
-                }
+    val requestLocationPermissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { map ->
 
-            SideEffect {
-                requestLocationPermissionLauncher.launch(permission)
+            if (map.all { it.value == true }) {
+                onPermissionGranted()
+            } else {
+                onPermissionDenied()
             }
         }
+
+    SideEffect {
+        requestLocationPermissionLauncher.launch(permissionsToRequest.toTypedArray())
     }
 }
 

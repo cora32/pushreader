@@ -16,11 +16,17 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
+import dagger.hilt.android.AndroidEntryPoint
 import io.alexarix.pushreader.R
+import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.toBase64
+import javax.inject.Inject
 
 
-class PushReaderService : NotificationListenerService() {
+@AndroidEntryPoint
+class PushReaderService @Inject constructor(
+    repo: Repo
+) : NotificationListenerService() {
     val channelId = "pushreader_notification_channel"
 
     override fun onListenerConnected() {
@@ -43,11 +49,25 @@ class PushReaderService : NotificationListenerService() {
 
     @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("UseCompatLoadingForDrawables")
-    private fun getLargeIcon(extras: Bundle): Bitmap? {
+    private fun getLargeIconBig(extras: Bundle): Bitmap? {
         return try {
             if (extras.containsKey(Notification.EXTRA_LARGE_ICON_BIG)) {
                 // this bitmap contain the picture attachment
                 extras.get(Notification.EXTRA_LARGE_ICON_BIG) as Bitmap?
+            } else null
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun getLargeIcon(extras: Bundle): Bitmap? {
+        return try {
+            if (extras.containsKey(Notification.EXTRA_LARGE_ICON)) {
+                // this bitmap contain the picture attachment
+                extras.get(Notification.EXTRA_LARGE_ICON) as Bitmap?
             } else null
         } catch (e: Exception) {
             e.printStackTrace()
@@ -76,8 +96,14 @@ class PushReaderService : NotificationListenerService() {
         val extras = notification.extras
         val tickerText = notification.tickerText?.toString()
         val smallIconStr = getSmallIcon(resources, notification)?.toBase64()
-        val largeIconStr = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val largeIconStr1 = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             getLargeIcon(extras = extras)?.toBase64()
+        } else {
+            null
+        }
+        val largeIconStr2 = notification.largeIcon?.toBase64()
+        val largeIconBig = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            getLargeIconBig(extras)?.toBase64()
         } else {
             null
         }
@@ -96,9 +122,11 @@ class PushReaderService : NotificationListenerService() {
         Log.e("PushReader", "  bigTitle: $bigTitle")
         Log.e("PushReader", "  Text: $text")
         Log.e("PushReader", "  bigText: $bigText")
-        Log.e("PushReader", "  smallIconStr: $smallIconStr")
-        Log.e("PushReader", "  largeIconStr: $largeIconStr")
-        Log.e("PushReader", "  extraPictureStr: $extraPictureStr")
+        Log.e("PushReader", "  smallIconStr: ${smallIconStr?.length}")
+        Log.e("PushReader", "  largeIconStr1: ${largeIconStr1?.length}")
+        Log.e("PushReader", "  largeIconStr2: ${largeIconStr2?.length}")
+        Log.e("PushReader", "  largeIconBig: ${largeIconBig?.length}")
+        Log.e("PushReader", "  extraPictureStr: ${extraPictureStr?.length}")
         Log.e("PushReader", "  actions: $actions")
         Log.e("PushReader", "  category: $category")
     }

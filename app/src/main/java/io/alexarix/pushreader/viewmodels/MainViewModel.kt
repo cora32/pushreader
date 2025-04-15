@@ -1,4 +1,4 @@
-package io.alexarix.pushreader
+package io.alexarix.pushreader.viewmodels
 
 import android.app.ActivityManager
 import android.app.Application
@@ -13,12 +13,20 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import io.alexarix.pushreader.activity.MainActivity
+import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.services.PushReaderService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.text.contains
 
-class MainViewModel(application: Application) : AndroidViewModel(application = application),
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    application: Application,
+    val repo: Repo
+) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
     private val _isPermissionGranted = mutableStateOf(false)
     private val _isServiceRunning = mutableStateOf(false)
