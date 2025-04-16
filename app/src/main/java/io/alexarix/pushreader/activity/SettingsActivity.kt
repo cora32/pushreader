@@ -126,7 +126,7 @@ class SettingsActivity : ComponentActivity() {
                                         .verticalScroll(state),
                                 ) {
                                     Text(
-                                        "Receiver Url:", style = TextStyle(
+                                        "Url:", style = TextStyle(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.W500
                                         )

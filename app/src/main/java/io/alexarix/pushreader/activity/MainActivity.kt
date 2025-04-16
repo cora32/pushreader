@@ -142,7 +142,7 @@ class MainActivity : ComponentActivity() {
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Text("Receiver Url: ")
+                                        Text("Url: ")
                                         when (model.url.value.trim()) {
                                             "" -> Text(
                                                 "Not set",
