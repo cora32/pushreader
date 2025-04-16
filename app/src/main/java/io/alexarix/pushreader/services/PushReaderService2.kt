@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class PushReaderService @Inject constructor() : NotificationListenerService() {
+class PushReaderService2 @Inject constructor() : NotificationListenerService() {
     @Inject
     lateinit var repo: Repo
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)

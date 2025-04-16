@@ -51,7 +51,7 @@
         </receiver>
 
         <service
-            android:name=".services.PushReaderService"
+            android:name=".services.PushReaderService2"
             android:exported="false"
             android:label="Alexarix Pushreader Listener"
             android:foregroundServiceType="remoteMessaging"
