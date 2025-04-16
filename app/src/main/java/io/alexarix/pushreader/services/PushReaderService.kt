@@ -212,7 +212,7 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
             val serviceChannel = NotificationChannel(
                 channelId,
                 "PushReader Service Channel",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             )
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
@@ -229,6 +229,7 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
             .setContentText("PushReader is monitoring notifications.")
             .setSmallIcon(R.drawable.ic_stat_name)
             .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOngoing(true)
             .build()
 
