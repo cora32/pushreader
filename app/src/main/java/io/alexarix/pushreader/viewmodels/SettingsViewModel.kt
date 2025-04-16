@@ -169,11 +169,15 @@ class SettingsViewModel @Inject constructor(
         "--> Parsing url: $url".e
 
         parseUrl(url)?.let {
-            SPM.protocol = it.protocol.trim()
-            SPM.host = it.host.trim()
-            SPM.port = if (it.port == -1) 443 else it.port
-            SPM.path = it.path.trim()
-            SPM.url = "${SPM.protocol}://${SPM.host}:${SPM.port}${SPM.path}"
+            if (it.host.trim().isEmpty())
+                SPM.url = ""
+            else {
+                SPM.protocol = it.protocol.trim()
+                SPM.host = it.host.trim()
+                SPM.port = if (it.port == -1) 443 else it.port
+                SPM.path = it.path.trim()
+                SPM.url = "${SPM.protocol}://${SPM.host}:${SPM.port}${SPM.path}"
+            }
 
             ("Url parsed: \n" +
                     "  host: ${SPM.host} \n" +

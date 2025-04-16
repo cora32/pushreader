@@ -638,10 +638,9 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                     fontWeight = FontWeight.W400
                 )
             )
-            if (smallIcon != null)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = iconText,
@@ -651,6 +650,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                             fontWeight = FontWeight.W400
                         )
                     )
+                    if (smallIcon != null)
                     AsyncImage(
                         model = smallIcon,
                         contentDescription = null,
@@ -658,11 +658,11 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                         error = ColorPainter(MaterialTheme.colorScheme.surfaceDim),
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.size(30.dp)
-                    )
+                    ) else Text("none")
                 }
-            if (largeIcon != null)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = largeIconText,
@@ -672,6 +672,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                             fontWeight = FontWeight.W400
                         )
                     )
+                    if (largeIcon != null)
                     AsyncImage(
                         model = largeIcon,
                         contentDescription = null,
@@ -679,7 +680,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                         error = ColorPainter(MaterialTheme.colorScheme.surfaceDim),
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.size(30.dp)
-                    )
+                    ) else Text("none")
                 }
 
         }
