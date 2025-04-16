@@ -32,6 +32,15 @@ interface PRDao {
     @Query("SELECT COUNT(*) FROM PRLogEntity WHERE bigText = :bigText")
     suspend fun countUniqueByBigText(bigText: String): Int
 
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE summaryText = :summaryText")
+    suspend fun countUniqueBySummary(summaryText: String): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE infoText = :infoText")
+    suspend fun countUniqueByInfo(infoText: String): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE subText = :subText")
+    suspend fun countUniqueBySubText(subText: String): Int
+
     @Query("UPDATE PRLogEntity SET isSent = :value WHERE uid = :id")
     suspend fun setIsSent(id: Long, value: Boolean)
 

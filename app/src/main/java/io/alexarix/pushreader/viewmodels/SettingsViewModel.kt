@@ -107,6 +107,12 @@ class SettingsViewModel @Inject constructor(
             distinctList.add("Text")
         if (SPM.isUniqueByBigText)
             distinctList.add("Big text")
+        if (SPM.isUniqueBySummary)
+            distinctList.add("Summary")
+        if (SPM.isUniqueBySubtext)
+            distinctList.add("Subtext")
+        if (SPM.isUniqueByInfo)
+            distinctList.add("Info")
 
         distinctList.joinToString(", ")
     }
@@ -137,6 +143,24 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleUniqueByTicker(value: Boolean) {
         repo.toggleUniqueByTicker(value)
+
+        updateDistinct()
+    }
+
+    fun toggleUniqueBySummaryText(value: Boolean) {
+        repo.toggleUniqueBySummaryText(value)
+
+        updateDistinct()
+    }
+
+    fun toggleUniqueByInfoText(value: Boolean) {
+        repo.toggleUniqueByInfoText(value)
+
+        updateDistinct()
+    }
+
+    fun toggleUniqueBySubText(value: Boolean) {
+        repo.toggleUniqueBySubText(value)
 
         updateDistinct()
     }

@@ -143,7 +143,8 @@ class SettingsActivity : ComponentActivity() {
                                         style = TextStyle(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.W500
-                                        )
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                     HorizontalDivider(
                                         thickness = 0.5.dp,
@@ -155,6 +156,9 @@ class SettingsActivity : ComponentActivity() {
                                         bigTitleToggle = { model.toggleUniqueByBigTitle(it) },
                                         textToggle = { model.toggleUniqueByText(it) },
                                         bigTextToggle = { model.toggleUniqueByBigText(it) },
+                                        summaryTextToggle = { model.toggleUniqueBySummaryText(it) },
+                                        infoTextToggle = { model.toggleUniqueByInfoText(it) },
+                                        subTextToggle = { model.toggleUniqueBySubText(it) },
                                     )
                                     Spacer(Modifier.height(16.dp))
                                     Text(
@@ -172,7 +176,7 @@ class SettingsActivity : ComponentActivity() {
                                         appList = model.appList.value,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(350.dp)
+                                            .height(650.dp)
                                     ) { packageName, enabled ->
                                         model.toggleApp(packageName, enabled)
                                     }
@@ -300,6 +304,9 @@ fun UniquenessToggles(
     bigTitleToggle: (Boolean) -> Unit,
     textToggle: (Boolean) -> Unit,
     bigTextToggle: (Boolean) -> Unit,
+    summaryTextToggle: (Boolean) -> Unit,
+    infoTextToggle: (Boolean) -> Unit,
+    subTextToggle: (Boolean) -> Unit,
 ) {
     val switchColors =
         SwitchDefaults.colors(
@@ -318,6 +325,24 @@ fun UniquenessToggles(
             colors = switchColors,
             onToggle = tickerToggle,
             isToggled = SPM.isUniqueByTicker
+        )
+        UniquenessToggle(
+            name = "Summary",
+            colors = switchColors,
+            onToggle = summaryTextToggle,
+            isToggled = SPM.isUniqueBySummary
+        )
+        UniquenessToggle(
+            name = "Info",
+            colors = switchColors,
+            onToggle = infoTextToggle,
+            isToggled = SPM.isUniqueByInfo
+        )
+        UniquenessToggle(
+            name = "Subtext",
+            colors = switchColors,
+            onToggle = subTextToggle,
+            isToggled = SPM.isUniqueBySubtext
         )
         UniquenessToggle(
             name = "Title",

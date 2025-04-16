@@ -9,6 +9,9 @@ const val protocolKey = "protocolKey"
 const val hostKey = "hostKey"
 const val portKey = "portKey"
 const val pathKey = "pathKey"
+const val uSubtextKey = "uSubtextKey"
+const val uInfoKey = "uInfoKey"
+const val uSummaryKey = "uSummaryKey"
 const val uTitleKey = "uTitleKey"
 const val uTickerKey = "uTickerKey"
 const val uBigTitleKey = "uBigTitleKey"
@@ -70,6 +73,27 @@ class SPM(val application: Application) {
             get() = preferences.getBoolean(uTickerKey, false)
             set(newValue) {
                 preferences.edit() { putBoolean(uTickerKey, newValue) }
+                field = newValue
+            }
+
+        var isUniqueBySummary: Boolean = false
+            get() = preferences.getBoolean(uSummaryKey, false)
+            set(newValue) {
+                preferences.edit() { putBoolean(uSummaryKey, newValue) }
+                field = newValue
+            }
+
+        var isUniqueByInfo: Boolean = false
+            get() = preferences.getBoolean(uInfoKey, false)
+            set(newValue) {
+                preferences.edit() { putBoolean(uInfoKey, newValue) }
+                field = newValue
+            }
+
+        var isUniqueBySubtext: Boolean = false
+            get() = preferences.getBoolean(uSubtextKey, false)
+            set(newValue) {
+                preferences.edit() { putBoolean(uSubtextKey, newValue) }
                 field = newValue
             }
 

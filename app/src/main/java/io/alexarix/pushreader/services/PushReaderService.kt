@@ -8,7 +8,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.drawable.VectorDrawable
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
@@ -16,10 +16,10 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.core.graphics.drawable.toBitmap
 import dagger.hilt.android.AndroidEntryPoint
 import io.alexarix.pushreader.R
 import io.alexarix.pushreader.activity.MainActivity
+import io.alexarix.pushreader.getBitmapFromIcon
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
 import io.alexarix.pushreader.repo.room.PRLogEntity
@@ -48,13 +48,36 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private fun getSmallIcon(externalResources: Resources, notification: Notification): Bitmap? {
+        return notification.smallIcon?.let {
+            getBitmapFromIcon(context = applicationContext, icon = it)
+        }
+//        return try {
+//            val id = notification.smallIcon.resId
+//            "--> RECVD small icon: $id".e
+//            val drawable = externalResources.getDrawable(id) as? VectorDrawable
+//            drawable?.toBitmap()
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            null
+//        }
+    }
+
+    @SuppressLint("UseCompatLoadingForDrawables")
+    private fun getLargeIconFromBitmap(extras: Bundle): Bitmap? {
         return try {
-            val id = notification.smallIcon.resId
-            val drawable = externalResources.getDrawable(id) as? VectorDrawable
-            drawable?.toBitmap()
+            if (extras.containsKey(Notification.EXTRA_LARGE_ICON)) {
+                // this bitmap contain the picture attachment
+                extras.get(Notification.EXTRA_LARGE_ICON) as Bitmap?
+            } else null
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    private fun getLargeIconFromIcon(extras: Bundle): Bitmap? {
+        return (extras.get(Notification.EXTRA_LARGE_ICON) as? Icon?)?.let {
+            getBitmapFromIcon(context = applicationContext, icon = it)
         }
     }
 
@@ -65,20 +88,6 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
             if (extras.containsKey(Notification.EXTRA_LARGE_ICON_BIG)) {
                 // this bitmap contain the picture attachment
                 extras.get(Notification.EXTRA_LARGE_ICON_BIG) as Bitmap?
-            } else null
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    @SuppressLint("UseCompatLoadingForDrawables")
-    private fun getLargeIcon(extras: Bundle): Bitmap? {
-        return try {
-            if (extras.containsKey(Notification.EXTRA_LARGE_ICON)) {
-                // this bitmap contain the picture attachment
-                extras.get(Notification.EXTRA_LARGE_ICON) as Bitmap?
             } else null
         } catch (e: Exception) {
             e.printStackTrace()
@@ -118,18 +127,14 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
     private fun getEntity(sbn: StatusBarNotification): PRLogEntity? {
         val packageName = sbn.packageName
         val resources: Resources = packageManager.getResourcesForApplication(packageName)
-
         val notification: Notification = sbn.notification
         val extras = notification.extras
+
         val tickerText = notification.tickerText?.toString()
         val smallIconStr = getSmallIcon(resources, notification)?.toBase64()
-        val largeIconStr1 = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getLargeIcon(extras = extras)?.toBase64()
-        } else {
-            null
-        }
-        val largeIconStr2 = notification.largeIcon?.toBase64()
-        val largeIconBig = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val largeIconStr = getLargeIconFromIcon(extras = extras)?.toBase64()
+        val largeIconBitmapStr = getLargeIconFromBitmap(extras = extras)?.toBase64()
+        val largeIconBigStr = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             getLargeIconBig(extras)?.toBase64()
         } else {
             null
@@ -141,6 +146,9 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
         val extraPictureStr = getExtraPicture(extras = extras)?.toBase64()
         val actions = notification.actions?.map { it.title.toString() }
         val category = notification.category
+        val summaryText = extras?.getString(Notification.EXTRA_SUMMARY_TEXT)
+        val infoText = extras?.getString(Notification.EXTRA_INFO_TEXT)
+        val subText = extras?.getString(Notification.EXTRA_SUB_TEXT)
 
         Log.e("PushReader", "Notification Posted:")
         Log.e("PushReader", "  Package: $packageName")
@@ -150,12 +158,17 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
         Log.e("PushReader", "  Text: $text")
         Log.e("PushReader", "  bigText: $bigText")
         Log.e("PushReader", "  smallIconStr: ${smallIconStr?.length}")
-        Log.e("PushReader", "  largeIconStr1: ${largeIconStr1?.length}")
-        Log.e("PushReader", "  largeIconStr2: ${largeIconStr2?.length}")
-        Log.e("PushReader", "  largeIconBig: ${largeIconBig?.length}")
+        Log.e("PushReader", "  largeIconStr: ${largeIconStr?.length}")
         Log.e("PushReader", "  extraPictureStr: ${extraPictureStr?.length}")
         Log.e("PushReader", "  actions: $actions")
         Log.e("PushReader", "  category: $category")
+        Log.e("PushReader", "  summaryText: $summaryText")
+        Log.e("PushReader", "  infoText: $infoText")
+        Log.e("PushReader", "  subText: $subText")
+
+//        for (key in extras.keySet()) {
+//            "--> extra has the key: $key".e
+//        }
 
         return PRLogEntity(
             timestamp = System.currentTimeMillis(),
@@ -166,12 +179,15 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
             text = text,
             bigText = bigText,
             smallIconStr = smallIconStr,
-            largeIconBig = largeIconBig,
-            largeIconStr1 = largeIconStr1,
-            largeIconStr2 = largeIconStr2,
+            largeIconStr = largeIconStr,
+            largeIconBigStr = largeIconBigStr,
+            largeIconBitmapStr = largeIconBitmapStr,
             extraPictureStr = extraPictureStr,
             actions = actions,
             category = category,
+            summaryText = summaryText,
+            infoText = infoText,
+            subText = subText,
         )
     }
 

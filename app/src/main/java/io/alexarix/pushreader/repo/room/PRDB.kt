@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Database(
     entities = [PRLogEntity::class,],
-    version = 1,
+    version = 2,
 
 //    autoMigrations = [
 //        AutoMigration (
@@ -33,5 +33,5 @@ fun getDB(
     .databaseBuilder(application, CacheDB::class.java, "pr_db")
 //    .addMigrations(MIGRATION_3_4)
 //    .addMigrations(MIGRATION_4_5)
-    .fallbackToDestructiveMigration()
+    .fallbackToDestructiveMigration(dropAllTables = true)
     .build()

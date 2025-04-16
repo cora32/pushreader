@@ -114,6 +114,9 @@ class Repo @Inject constructor(
             && !SPM.isUniqueByBigTitle
             && !SPM.isUniqueByText
             && !SPM.isUniqueByBigText
+            && !SPM.isUniqueBySummary
+            && !SPM.isUniqueByInfo
+            && !SPM.isUniqueBySubtext
         ) {
 //            return isUniqueByTitle(entity)
 //                    && isUniqueByTicker(entity)
@@ -127,7 +130,10 @@ class Repo @Inject constructor(
                 if (SPM.isUniqueByTicker) isUniqueByTicker(entity) else true,
                 if (SPM.isUniqueByBigTitle) isUniqueByBigTitle(entity) else true,
                 if (SPM.isUniqueByText) isUniqueByText(entity) else true,
-                if (SPM.isUniqueByBigText) isUniqueByBigText(entity) else true
+                if (SPM.isUniqueByBigText) isUniqueByBigText(entity) else true,
+                if (SPM.isUniqueBySummary) isUniqueBySummary(entity) else true,
+                if (SPM.isUniqueByInfo) isUniqueByInfo(entity) else true,
+                if (SPM.isUniqueBySubtext) isUniqueBySubtext(entity) else true,
             )
 
             return result.all { it == true }
@@ -157,6 +163,21 @@ class Repo @Inject constructor(
     private suspend fun isUniqueByBigText(entity: PRLogEntity): Boolean =
         (if (entity.bigText != null) dao.countUniqueByBigText(entity.bigText) == 0 else true).apply {
             "Checking uniqueness of $entity by BigText: $this".e
+        }
+
+    private suspend fun isUniqueBySummary(entity: PRLogEntity): Boolean =
+        (if (entity.summaryText != null) dao.countUniqueBySummary(entity.summaryText) == 0 else true).apply {
+            "Checking uniqueness of $entity by Summary: $this".e
+        }
+
+    private suspend fun isUniqueByInfo(entity: PRLogEntity): Boolean =
+        (if (entity.infoText != null) dao.countUniqueByInfo(entity.infoText) == 0 else true).apply {
+            "Checking uniqueness of $entity by Info: $this".e
+        }
+
+    private suspend fun isUniqueBySubtext(entity: PRLogEntity): Boolean =
+        (if (entity.subText != null) dao.countUniqueBySubText(entity.subText) == 0 else true).apply {
+            "Checking uniqueness of $entity by subText: $this".e
         }
 
     private suspend fun storeData(entity: PRLogEntity): Long = dao.insert(entity)
@@ -224,6 +245,21 @@ class Repo @Inject constructor(
 
     fun toggleUniqueByTicker(value: Boolean) {
         SPM.isUniqueByTicker = value
+        verboseUniques()
+    }
+
+    fun toggleUniqueBySummaryText(value: Boolean) {
+        SPM.isUniqueBySummary = value
+        verboseUniques()
+    }
+
+    fun toggleUniqueByInfoText(value: Boolean) {
+        SPM.isUniqueByInfo = value
+        verboseUniques()
+    }
+
+    fun toggleUniqueBySubText(value: Boolean) {
+        SPM.isUniqueBySubtext = value
         verboseUniques()
     }
 

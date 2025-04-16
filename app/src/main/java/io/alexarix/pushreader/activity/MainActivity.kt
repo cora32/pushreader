@@ -43,10 +43,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -58,6 +64,8 @@ import io.alexarix.pushreader.viewmodels.MainViewModel
 import io.alexarix.pushreader.viewmodels.e
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -427,8 +435,87 @@ private fun TopBar(modifier: Modifier = Modifier, onSettings: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalEncodingApi::class)
 @Composable
 fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
+    val tickerText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Ticker")
+        }
+        append(": ${item.entity.tickerText}")
+    }
+    val summaryText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Summary")
+        }
+        append(": ${item.entity.summaryText}")
+    }
+    val subText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Subtext")
+        }
+        append(": ${item.entity.subText}")
+    }
+    val info = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Info")
+        }
+        append(": ${item.entity.infoText}")
+    }
+    val titleText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Title")
+        }
+        append(": ${item.entity.title}")
+    }
+    val bigTitleText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Big title")
+        }
+        append(": ${item.entity.bigTitle}")
+    }
+    val textText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Text")
+        }
+        append(": ${item.entity.text}")
+    }
+    val bigTextText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Big text")
+        }
+        append(": ${item.entity.bigText}")
+    }
+    val buttonsText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Buttons")
+        }
+        append(": ${item.entity.actions}")
+    }
+    val categoryText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Category")
+        }
+        append(": ${item.entity.category}")
+    }
+    val iconText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Small Icon")
+        }
+        append(": ")
+    }
+    val largeIconText = buildAnnotatedString {
+        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+            append("Large Icon")
+        }
+        append(": ")
+    }
+
+    val smallIcon =
+        item.entity.smallIconStr?.let { Base64.decode(it) }
+    val largeIcon =
+        item.entity.largeIconStr?.let { Base64.decode(it) }
+
     Column {
         Text(
             text = "${sdf.format(item.entity.timestamp)}",
@@ -472,16 +559,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
         Column(modifier = Modifier.padding(8.dp)) {
 
             Text(
-                text = "Ticker: ${item.entity.tickerText}",
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W400
-                )
-            )
-
-            Text(
-                text = "Text: ${item.entity.text}",
+                text = summaryText,
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
@@ -489,7 +567,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                 )
             )
             Text(
-                text = "BigText: ${item.entity.bigText}",
+                text = subText,
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
@@ -497,7 +575,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                 )
             )
             Text(
-                text = "Title: ${item.entity.title}",
+                text = info,
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
@@ -505,7 +583,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                 )
             )
             Text(
-                text = "BigTitle: ${item.entity.bigTitle}",
+                text = tickerText,
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
@@ -513,7 +591,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                 )
             )
             Text(
-                text = "Buttons: ${item.entity.actions?.joinToString(" ")}",
+                text = titleText,
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
@@ -521,13 +599,88 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                 )
             )
             Text(
-                text = "Category: ${item.entity.category}",
+                text = bigTitleText,
                 textAlign = TextAlign.Start,
                 style = TextStyle(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.W400
                 )
             )
+            Text(
+                text = textText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W400
+                )
+            )
+            Text(
+                text = bigTextText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W400
+                )
+            )
+            Text(
+                text = buttonsText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W400
+                )
+            )
+            Text(
+                text = categoryText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W400
+                )
+            )
+            if (smallIcon != null)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = iconText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W400
+                        )
+                    )
+                    AsyncImage(
+                        model = smallIcon,
+                        contentDescription = null,
+                        placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceContainer),
+                        error = ColorPainter(MaterialTheme.colorScheme.surfaceDim),
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            if (largeIcon != null)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = largeIconText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W400
+                        )
+                    )
+                    AsyncImage(
+                        model = largeIcon,
+                        contentDescription = null,
+                        placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceContainer),
+                        error = ColorPainter(MaterialTheme.colorScheme.surfaceDim),
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
 
         }
         HorizontalDivider(

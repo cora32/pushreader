@@ -20,12 +20,15 @@ data class PRLogEntity(
     @Expose @ColumnInfo(index = true) val bigText: String? = null,
     @ColumnInfo(index = true) val isSent: Boolean = false,
     @Expose val smallIconStr: String? = null,
-    @Expose val largeIconStr1: String? = null,
-    @Expose val largeIconStr2: String? = null,
-    @Expose val largeIconBig: String? = null,
+    @Expose val largeIconStr: String? = null,
+    @Expose val largeIconBigStr: String? = null,
+    @Expose val largeIconBitmapStr: String? = null,
     @Expose val extraPictureStr: String? = null,
     @Expose val actions: List<String>? = null,
     @Expose val category: String? = null,
+    @Expose val summaryText: String? = null,
+    @Expose val infoText: String? = null,
+    @Expose val subText: String? = null,
 ) {
     override fun toString(): String {
         return "packageName: $packageName\n" +
@@ -35,12 +38,15 @@ data class PRLogEntity(
                 "text: $text\n" +
                 "bigText: $bigText\n" +
                 "smallIconStr: ${smallIconStr?.length}\n" +
-                "largeIconStr1: ${largeIconStr1?.length}\n" +
-                "largeIconStr2: ${largeIconStr2?.length}\n" +
-                "largeIconBig: ${largeIconBig?.length}\n" +
+                "largeIconStr1: ${largeIconStr?.length}\n" +
+                "largeIconStr2: ${largeIconBigStr?.length}\n" +
+                "largeIconBitmapStr: ${largeIconBitmapStr?.length}\n" +
                 "extraPictureStr: ${extraPictureStr?.length}\n" +
                 "actions: $actions\n" +
                 "category: $category\n" +
+                "summaryText: $summaryText\n" +
+                "infoText: $infoText\n" +
+                "subText: $subText\n" +
                 ""
     }
 }
