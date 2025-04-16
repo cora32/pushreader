@@ -175,17 +175,17 @@ class MainActivity : ComponentActivity() {
                                     )
                                     Spacer(Modifier.height(8.dp))
                                     StatRow(
-                                        text = "Sent: ",
-                                        value = model.sent.intValue,
-                                        colored = false
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-                                    StatRow(
                                         text = "Entries in DB: ",
                                         value = model.entriesInDB.intValue,
                                         colored = false
                                     )
                                 }
+                                Spacer(Modifier.height(8.dp))
+                                StatRow(
+                                    text = "Sent: ",
+                                    value = model.sent.intValue,
+                                    colored = false
+                                )
                                 Spacer(Modifier.height(8.dp))
                                 StatRow(
                                     text = "Not sent: ",
