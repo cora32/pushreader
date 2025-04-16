@@ -115,6 +115,8 @@ class SettingsActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(bottom = 32.dp, top = 16.dp, start = 8.dp, end = 8.dp)
                     ) {
+                        val appString =
+                            if (model.selectedApps.intValue == 0) " - Intercepting all" else ""
                         when (model.isLoading.value) {
                             true -> Loader(width = 100.dp, height = 10.dp)
                             false ->
@@ -137,7 +139,8 @@ class SettingsActivity : ComponentActivity() {
                                     UrlField(model = model)
                                     Spacer(Modifier.height(16.dp))
                                     Text(
-                                        "Compare uniqueness by:", style = TextStyle(
+                                        "Compare uniqueness by: ${model.distinctBy.value}",
+                                        style = TextStyle(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.W500
                                         )
@@ -155,7 +158,7 @@ class SettingsActivity : ComponentActivity() {
                                     )
                                     Spacer(Modifier.height(16.dp))
                                     Text(
-                                        "Intercept notification from: (selected: ${model.selectedApps.intValue})",
+                                        "Intercept notification from: (selected: ${model.selectedApps.intValue}$appString)",
                                         style = TextStyle(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.W500

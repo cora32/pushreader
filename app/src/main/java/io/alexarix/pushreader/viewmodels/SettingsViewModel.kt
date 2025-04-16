@@ -40,10 +40,12 @@ class SettingsViewModel @Inject constructor(
     private val _isLoading = mutableStateOf<Boolean>(false)
     private val _appList = mutableStateOf<List<AppItemData>>(listOf())
     private val _selectedApps = mutableIntStateOf(SPM.selectedApps.size)
+    private val _distinctBy = mutableStateOf(getDistinctString())
 
     val appList: State<List<AppItemData>> = _appList
     val isLoading: State<Boolean> = _isLoading
     val selectedApps: IntState = _selectedApps
+    val distinctBy: State<String> = _distinctBy
 
     private fun getApps() {
         _isLoading.value = true
@@ -82,24 +84,61 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    private fun updateDistinct() {
+        _distinctBy.value = getDistinctString()
+    }
+
+    private fun getDistinctString() = if (
+        !SPM.isUniqueByTicker
+        && !SPM.isUniqueByTitle
+        && !SPM.isUniqueByBigTitle
+        && !SPM.isUniqueByText
+        && !SPM.isUniqueByBigText
+    ) "None (Sending all notifications)"
+    else {
+        val distinctList = mutableListOf<String>()
+        if (SPM.isUniqueByTicker)
+            distinctList.add("Ticker")
+        if (SPM.isUniqueByTitle)
+            distinctList.add("Title")
+        if (SPM.isUniqueByBigTitle)
+            distinctList.add("Big title")
+        if (SPM.isUniqueByText)
+            distinctList.add("Text")
+        if (SPM.isUniqueByBigText)
+            distinctList.add("Big text")
+
+        distinctList.joinToString(", ")
+    }
+
     fun toggleUniqueByTitle(value: Boolean) {
         repo.toggleUniqueByTitle(value)
+
+        updateDistinct()
     }
 
     fun toggleUniqueByBigTitle(value: Boolean) {
         repo.toggleUniqueByBigTitle(value)
+
+        updateDistinct()
     }
 
     fun toggleUniqueByText(value: Boolean) {
         repo.toggleUniqueByText(value)
+
+        updateDistinct()
     }
 
     fun toggleUniqueByBigText(value: Boolean) {
         repo.toggleUniqueByBigText(value)
+
+        updateDistinct()
     }
 
     fun toggleUniqueByTicker(value: Boolean) {
         repo.toggleUniqueByTicker(value)
+
+        updateDistinct()
     }
 
     fun setUrl(url: String) {

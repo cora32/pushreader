@@ -17,6 +17,8 @@ const val uBigTextKey = "uBigTextKey"
 const val packagesNamesKey = "packagesNamesKey"
 const val sentKey = "sentKey"
 const val processedKey = "processedKey"
+const val ignoredKey = "ignoredKey"
+const val filteredKey = "filteredKey"
 const val errorsKey = "errorsKey"
 const val urlKey = "urlKey"
 //const val countUniqueKey = "countUniqueKey"
@@ -110,6 +112,20 @@ class SPM(val application: Application) {
             get() = preferences.getInt(processedKey, 0)
             set(newValue) {
                 preferences.edit() { putInt(processedKey, newValue) }
+                field = newValue
+            }
+
+        var ignored: Int = 0
+            get() = preferences.getInt(ignoredKey, 0)
+            set(newValue) {
+                preferences.edit() { putInt(ignoredKey, newValue) }
+                field = newValue
+            }
+
+        var filtered: Int = 0
+            get() = preferences.getInt(filteredKey, 0)
+            set(newValue) {
+                preferences.edit() { putInt(filteredKey, newValue) }
                 field = newValue
             }
 

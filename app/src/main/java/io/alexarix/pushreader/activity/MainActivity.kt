@@ -1,6 +1,5 @@
 package io.alexarix.pushreader.activity
 
-import android.Manifest
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -157,104 +156,48 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                     Spacer(Modifier.height(16.dp))
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            "Processed: ",
-                                            style = TextStyle(fontWeight = FontWeight.W500)
-                                        )
-                                        Text(
-                                            "${model.processed.intValue}",
-                                            style = TextStyle(fontWeight = FontWeight.W500)
-                                        )
-                                    }
-                                    Spacer(Modifier.height(8.dp))
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            "Sent: ",
-                                            style = TextStyle(fontWeight = FontWeight.W500)
-                                        )
-                                        Text(
-                                            "${model.sent.intValue}",
-                                            style = TextStyle(fontWeight = FontWeight.W500)
-                                        )
-                                    }
-                                    Spacer(Modifier.height(8.dp))
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            "Entries in DB: ",
-                                            style = TextStyle(fontWeight = FontWeight.W500)
-                                        )
-                                        Text(
-                                            "${model.entriesInDB.intValue}",
-                                            style = TextStyle(fontWeight = FontWeight.W500)
-                                        )
-                                    }
-                                }
-                                Spacer(Modifier.height(8.dp))
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        "Not sent: ",
-                                        style = TextStyle(fontWeight = FontWeight.W500)
+                                    StatRow(
+                                        text = "Processed: ",
+                                        value = model.processed.intValue,
+                                        colored = false
                                     )
-                                    Text(
-                                        "${model.notSent.intValue}",
-                                        style = TextStyle(
-                                            fontWeight = FontWeight.W500,
-                                            color = if (model.notSent.intValue == 0) Color(
-                                                0xFF19AC0E
-                                            ) else Color.Red,
-                                        )
+                                    Spacer(Modifier.height(8.dp))
+                                    StatRow(
+                                        text = "Ignored: ",
+                                        value = model.ignored.intValue,
+                                        colored = false
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    StatRow(
+                                        text = "Filtered: ",
+                                        value = model.filtered.intValue,
+                                        colored = false
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    StatRow(
+                                        text = "Sent: ",
+                                        value = model.sent.intValue,
+                                        colored = false
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    StatRow(
+                                        text = "Entries in DB: ",
+                                        value = model.entriesInDB.intValue,
+                                        colored = false
                                     )
                                 }
                                 Spacer(Modifier.height(8.dp))
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        "Errors: ",
-                                        style = TextStyle(fontWeight = FontWeight.W500)
-                                    )
-                                    Text(
-                                        "${model.errors.intValue}",
-                                        style = TextStyle(
-                                            fontWeight = FontWeight.W500,
-                                            color = if (model.errors.intValue == 0) Color(0xFF19AC0E) else Color.Red,
-                                        )
-                                    )
-                                }
+                                StatRow(
+                                    text = "Not sent: ",
+                                    value = model.notSent.intValue,
+                                    colored = true
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                StatRow(
+                                    text = "Errors: ",
+                                    value = model.errors.intValue,
+                                    colored = true
+                                )
                                 Spacer(Modifier.height(16.dp))
                                 Column(
                                     modifier = Modifier
@@ -329,13 +272,51 @@ class MainActivity : ComponentActivity() {
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         RuntimePermissionsDialog(
-                            onPermissionDenied = {},
-                            onPermissionGranted = {},
+                            onPermissionDenied = {
+                                "--> Perm denied".e
+                            },
+                            onPermissionGranted = {
+                                model.startService(this@MainActivity)
+                                "--> Perm granted".e
+                            },
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StatRow(modifier: Modifier = Modifier, text: String, value: Int, colored: Boolean) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text,
+            style = TextStyle(fontWeight = FontWeight.W500)
+        )
+        when (colored) {
+            true -> Text(
+                "$value",
+                style = TextStyle(
+                    fontWeight = FontWeight.W500,
+                    color = if (value == 0) Color(0xFF19AC0E) else Color.Red,
+                )
+            )
+
+            else -> Text(
+                "$value",
+                style = TextStyle(
+                    fontWeight = FontWeight.W500,
+                )
+            )
+        }
+
     }
 }
 
@@ -348,9 +329,9 @@ fun RuntimePermissionsDialog(
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         permissions.add(POST_NOTIFICATIONS)
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        permissions.add(Manifest.permission.QUERY_ALL_PACKAGES)
-    }
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//        permissions.add(Manifest.permission.QUERY_ALL_PACKAGES)
+//    }
 
     val permissionsToRequest = mutableListOf<String>()
     for (permission in permissions) {

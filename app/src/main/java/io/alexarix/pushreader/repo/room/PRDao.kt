@@ -17,19 +17,19 @@ interface PRDao {
     @Query("SELECT * FROM PRLogEntity WHERE packageName = :packageName")
     suspend fun getLogsForPackage(packageName: String): List<PRLogEntity>
 
-    @Query("SELECT COUNT(title) FROM PRLogEntity WHERE title = :title")
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE title = :title")
     suspend fun countUniqueByTitle(title: String): Int
 
-    @Query("SELECT COUNT(title) FROM PRLogEntity WHERE tickerText = :ticker")
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE tickerText = :ticker")
     suspend fun countUniqueByTicker(ticker: String): Int
 
-    @Query("SELECT COUNT(title) FROM PRLogEntity WHERE bigTitle = :bigTitle")
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE bigTitle = :bigTitle")
     suspend fun countUniqueByBigTitle(bigTitle: String): Int
 
-    @Query("SELECT COUNT(title) FROM PRLogEntity WHERE text = :text")
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE text = :text")
     suspend fun countUniqueByText(text: String): Int
 
-    @Query("SELECT COUNT(title) FROM PRLogEntity WHERE bigText = :bigText")
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE bigText = :bigText")
     suspend fun countUniqueByBigText(bigText: String): Int
 
     @Query("UPDATE PRLogEntity SET isSent = :value WHERE uid = :id")
@@ -38,10 +38,10 @@ interface PRDao {
     @Query("SELECT * FROM PRLogEntity")
     fun dataFlow(): Flow<PRLogEntity?>
 
-    @Query("SELECT COUNT(title) FROM PRLogEntity")
+    @Query("SELECT COUNT(*) FROM PRLogEntity")
     suspend fun count(): Int
 
-    @Query("SELECT COUNT(title) FROM PRLogEntity WHERE isSent = 0")
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE isSent = 0")
     suspend fun countUnsent(): Int
 
     @Query("SELECT * FROM PRLogEntity ORDER BY timestamp DESC LIMIT 100")

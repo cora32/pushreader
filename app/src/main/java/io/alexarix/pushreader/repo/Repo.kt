@@ -30,6 +30,8 @@ class Repo @Inject constructor(
         // Processing only selected packageNames
         if (!isProcessing) {
             "Ignoring notification from ${entity.packageName}: $entity".e
+            SPM.ignored++
+
             return
         }
 
@@ -40,6 +42,8 @@ class Repo @Inject constructor(
         // Saving only unique notifications
         if (!isUnique) {
             "Omitting copy of notification from ${entity.packageName}: $entity".e
+            SPM.filtered++
+
             return
         }
 
@@ -111,11 +115,12 @@ class Repo @Inject constructor(
             && !SPM.isUniqueByText
             && !SPM.isUniqueByBigText
         ) {
-            return isUniqueByTitle(entity)
-                    && isUniqueByTicker(entity)
-                    && isUniqueByBigTitle(entity)
-                    && isUniqueByText(entity)
-                    && isUniqueByBigText(entity)
+//            return isUniqueByTitle(entity)
+//                    && isUniqueByTicker(entity)
+//                    && isUniqueByBigTitle(entity)
+//                    && isUniqueByText(entity)
+//                    && isUniqueByBigText(entity)
+            return true
         } else {
             val result = arrayOf(
                 if (SPM.isUniqueByTitle) isUniqueByTitle(entity) else true,

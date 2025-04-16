@@ -42,11 +42,13 @@ class MainViewModel @Inject constructor(
     @MainDispatcher private val uiDispatcher: CoroutineContext
 ) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
+    private val _filtered = mutableIntStateOf(0)
     private val _processed = mutableIntStateOf(0)
     private val _sent = mutableIntStateOf(0)
     private val _notSent = mutableIntStateOf(0)
     private val _entriesInDB = mutableIntStateOf(0)
     private val _errors = mutableIntStateOf(0)
+    private val _ignored = mutableIntStateOf(0)
     private val _url = mutableStateOf("")
     private val _isPermissionGranted = mutableStateOf(false)
     private val _isServiceRunning = mutableStateOf(false)
@@ -57,6 +59,8 @@ class MainViewModel @Inject constructor(
     val notSent: IntState = _notSent
     val entriesInDB: IntState = _entriesInDB
     val errors: IntState = _errors
+    val ignored: IntState = _ignored
+    val filtered: IntState = _filtered
     val url: State<String> = _url
     val isPermissionGranted: State<Boolean> = _isPermissionGranted
     val isServiceRunning: State<Boolean> = _isServiceRunning
@@ -174,33 +178,30 @@ class MainViewModel @Inject constructor(
             _sent.intValue = SPM.sent
             _notSent.intValue = repo.countUnsent()
             _processed.intValue = SPM.processed
+            _filtered.intValue = SPM.filtered
             _entriesInDB.intValue = repo.count()
             _errors.intValue = SPM.errors
             _url.value = SPM.url.trim()
+            _ignored.intValue = SPM.ignored
         }
     }
 
     override fun onCreate(owner: LifecycleOwner) {
         super.onCreate(owner)
 
-        startService(owner as MainActivity)
+        if (isNotificationListenerEnabled()) startService(owner as MainActivity)
     }
 
     fun startService(activity: MainActivity) {
+        val intent =
+            Intent(
+                activity,
+                PushReaderService::class.java
+            )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            activity.startForegroundService(
-                Intent(
-                    activity,
-                    PushReaderService::class.java
-                )
-            )
+            activity.startForegroundService(intent)
         } else {
-            activity.startService(
-                Intent(
-                    activity,
-                    PushReaderService::class.java
-                )
-            )
+            activity.startService(intent)
         }
 
         checkAsync()

@@ -24,6 +24,7 @@ import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
 import io.alexarix.pushreader.repo.room.PRLogEntity
 import io.alexarix.pushreader.toBase64
+import io.alexarix.pushreader.viewmodels.e
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -193,21 +194,7 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
         return START_STICKY
     }
 
-    private fun getPendingIntent(targetIntent: Intent): PendingIntent? {
-        val intentFlags =
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_ONE_SHOT
-
-        return PendingIntent.getActivity(
-            application,
-            UUID.randomUUID().hashCode(),
-            targetIntent,
-            intentFlags
-        )
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-
+    private fun showNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
                 channelId,
@@ -221,7 +208,9 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
         val targetIntent = Intent(
             application,
             MainActivity::class.java
-        )
+        ).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
 
         val pendingIntent = getPendingIntent(targetIntent)
         val notification: Notification = NotificationCompat.Builder(this, channelId)
@@ -233,6 +222,26 @@ class PushReaderService @Inject constructor() : NotificationListenerService() {
             .setOngoing(true)
             .build()
 
+        "--> Showing notification".e
+
         startForeground(1, notification)
+    }
+
+    private fun getPendingIntent(targetIntent: Intent): PendingIntent? {
+        val intentFlags =
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+
+        return PendingIntent.getActivity(
+            application,
+            UUID.randomUUID().hashCode(),
+            targetIntent,
+            intentFlags
+        )
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        showNotification()
     }
 }
