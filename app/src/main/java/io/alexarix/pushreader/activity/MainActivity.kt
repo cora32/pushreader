@@ -122,13 +122,13 @@ class MainActivity : ComponentActivity() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
+                            BottomButton(model = model, activity = this@MainActivity)
+                            Spacer(Modifier.height(16.dp))
                             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                                 StatsData(model = model, activity = this@MainActivity)
                                 Spacer(Modifier.height(16.dp))
                                 LastData(model = model)
                             }
-                            Spacer(Modifier.height(16.dp))
-                            BottomButton(model = model, activity = this@MainActivity)
                         }
                     }
 

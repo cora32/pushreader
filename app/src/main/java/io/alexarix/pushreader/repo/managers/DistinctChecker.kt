@@ -53,7 +53,7 @@ class DistinctChecker @Inject constructor(
 
     private suspend fun anyOn(entity: PRLogEntity) = DistinctToggles.entries
         .filter { it.isToggled }
-        .any {
+        .all {
             when (it) {
                 DistinctToggles.Summary -> isUniqueBySummary(
                     entity
