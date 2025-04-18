@@ -191,7 +191,7 @@ class Repo @Inject constructor(
         SPM.toggleDistinct(name = name, value = value).apply {
             logger.logInfo(reason = if (value) "Enabling filtering by $name" else "Disabling filtering by $name")
             logger.logInfo(
-                reason = "Current uniques: \n" + DistinctToggles.entries.map { "${it.name}: ${it.isToggled} \n" }
+                reason = "Current filters: \n\n" + DistinctToggles.entries.map { "${it.name}: ${it.isToggled} \n" }
             )
         }
 
