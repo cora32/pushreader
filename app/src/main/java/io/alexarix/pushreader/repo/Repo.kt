@@ -128,6 +128,8 @@ class Repo @Inject constructor(
     }
 
     suspend fun attemptSendUnsent() {
+        if (SPM.url.isEmpty()) return
+
         val unsent = dao.getUnsent()
         logger.logInfo(reason = "Startup check: We have ${unsent.size} stale entries to send...")
 

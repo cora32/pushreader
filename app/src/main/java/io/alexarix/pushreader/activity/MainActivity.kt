@@ -50,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -115,7 +116,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxSize()
-                            .padding(bottom = 32.dp)
+                            .padding(bottom = 8.dp)
                     ) {
                         Column(
                             modifier = Modifier
@@ -156,9 +157,12 @@ private fun ColumnScope.LastData(modifier: Modifier = Modifier, model: MainViewM
     val listState = rememberSaveable(saver = LazyListState.Saver) {
         LazyListState()
     }
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     Column(
-        modifier = Modifier.height(650.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .height(screenHeight)
     ) {
         Text(
             "Latest 100 entries in DB:", style = TextStyle(

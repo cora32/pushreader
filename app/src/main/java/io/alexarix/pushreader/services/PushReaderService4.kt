@@ -24,7 +24,6 @@ import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
 import io.alexarix.pushreader.repo.room.entity.PRLogEntity
 import io.alexarix.pushreader.toBase64
-import io.alexarix.pushreader.viewmodels.e
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,7 +32,7 @@ import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class PushReaderService3 @Inject constructor() : NotificationListenerService() {
+class PushReaderService4 @Inject constructor() : NotificationListenerService() {
     @Inject
     lateinit var repo: Repo
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -47,7 +46,7 @@ class PushReaderService3 @Inject constructor() : NotificationListenerService() {
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
-    private fun getSmallIcon(externalResources: Resources, notification: Notification): Bitmap? {
+    private fun getSmallIcon(notification: Notification): Bitmap? {
         return notification.smallIcon?.let {
             getBitmapFromIcon(context = applicationContext, icon = it)
         }
@@ -57,7 +56,6 @@ class PushReaderService3 @Inject constructor() : NotificationListenerService() {
     private fun getLargeIconFromBitmap(extras: Bundle): Bitmap? {
         return try {
             if (extras.containsKey(Notification.EXTRA_LARGE_ICON)) {
-                // this bitmap contain the picture attachment
                 extras.get(Notification.EXTRA_LARGE_ICON) as Bitmap?
             } else null
         } catch (e: Exception) {
@@ -77,7 +75,6 @@ class PushReaderService3 @Inject constructor() : NotificationListenerService() {
     private fun getLargeIconBig(extras: Bundle): Bitmap? {
         return try {
             if (extras.containsKey(Notification.EXTRA_LARGE_ICON_BIG)) {
-                // this bitmap contain the picture attachment
                 extras.get(Notification.EXTRA_LARGE_ICON_BIG) as Bitmap?
             } else null
         } catch (e: Exception) {
@@ -89,7 +86,6 @@ class PushReaderService3 @Inject constructor() : NotificationListenerService() {
     private fun getExtraPicture(extras: Bundle): Bitmap? {
         return try {
             if (extras.containsKey(Notification.EXTRA_PICTURE)) {
-                // this bitmap contain the picture attachment
                 extras.get(Notification.EXTRA_PICTURE) as Bitmap?
             } else null
         } catch (e: Exception) {
@@ -122,7 +118,7 @@ class PushReaderService3 @Inject constructor() : NotificationListenerService() {
         val extras = notification.extras
 
         val tickerText = notification.tickerText?.toString()
-        val smallIconStr = getSmallIcon(resources, notification)?.toBase64()
+        val smallIconStr = getSmallIcon(notification)?.toBase64()
         val largeIconStr = getLargeIconFromIcon(extras = extras)?.toBase64()
         val largeIconBitmapStr = getLargeIconFromBitmap(extras = extras)?.toBase64()
         val largeIconBigStr = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -228,8 +224,6 @@ class PushReaderService3 @Inject constructor() : NotificationListenerService() {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOngoing(true)
             .build()
-
-        "--> Showing notification".e
 
         startForeground(1, notification)
     }

@@ -91,7 +91,7 @@ class LogsActivity : ComponentActivity() {
                         modifier = Modifier
                             .padding(innerPadding)
                             .fillMaxSize()
-                            .padding(bottom = 32.dp, top = 16.dp, start = 8.dp, end = 8.dp)
+                            .padding(bottom = 8.dp, top = 16.dp, start = 8.dp, end = 8.dp)
                     ) {
                         Column {
                             LogToggle(
@@ -189,13 +189,21 @@ private fun LogEntry(modifier: Modifier = Modifier, entry: PRServiceLogEntity) {
 
     val tickerText = underlinedInfoText(name = "Ticker", value = entry.tickerText)
     val summaryText = underlinedInfoText(name = "Summary", value = entry.summaryText)
-    val subText = underlinedInfoText(name = "Summary", value = entry.subText)
+    val subText = underlinedInfoText(name = "Subtext", value = entry.subText)
     val info = underlinedInfoText(name = "Info", value = entry.infoText)
     val titleText = underlinedInfoText(name = "Title", value = entry.title)
     val bigTitleText = underlinedInfoText(name = "Big title", value = entry.bigTitle)
     val textText = underlinedInfoText(name = "Text", value = entry.text)
     val bigTextText = underlinedInfoText(name = "Big text", value = entry.bigText)
 
+    val showEntryData = entry.tickerText != null
+            || entry.summaryText != null
+            || entry.subText != null
+            || entry.infoText != null
+            || entry.title != null
+            || entry.bigTitle != null
+            || entry.text != null
+            || entry.bigText != null
     Column(
         modifier = Modifier
             .background(color)
@@ -220,77 +228,81 @@ private fun LogEntry(modifier: Modifier = Modifier, entry: PRServiceLogEntity) {
                 )
             )
             Spacer(Modifier.height(16.dp))
-            Text(
-                text = tickerText,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = summaryText,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = subText,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = info,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = titleText,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = bigTitleText,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = textText,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = bigTextText,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.W500
-                )
-            )
+            if (showEntryData)
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = tickerText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = summaryText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = subText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = info,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = titleText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = bigTitleText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = textText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = bigTextText,
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.W500
+                        )
+                    )
+                }
+
             Spacer(Modifier.height(6.dp))
         }
         HorizontalDivider(
