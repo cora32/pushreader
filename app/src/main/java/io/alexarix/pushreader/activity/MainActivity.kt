@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +28,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -119,169 +122,13 @@ class MainActivity : ComponentActivity() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text("Permission status: ")
-                                        when (model.isPermissionGranted.value) {
-                                            true -> Text(
-                                                "Granted",
-                                                style = TextStyle(color = Color(0xFF19AC0E))
-                                            )
-
-                                            else -> Text(
-                                                "Denied",
-                                                style = TextStyle(color = Color.Red),
-                                                modifier = Modifier.clickable {
-                                                    model.requestNotificationListenerAccess(this@MainActivity)
-                                                }
-                                            )
-                                        }
-                                    }
-                                    Spacer(Modifier.height(8.dp))
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 16.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text("Url: ")
-                                        when (model.url.value.trim()) {
-                                            "" -> Text(
-                                                "Not set",
-                                                style = TextStyle(color = Color.Red)
-                                            )
-
-                                            else -> Text(
-                                                model.url.value.trim(),
-                                                style = TextStyle(color = Color(0xFF19AC0E))
-                                            )
-                                        }
-                                    }
-                                    Spacer(Modifier.height(16.dp))
-                                    StatRow(
-                                        text = "Processed: ",
-                                        value = model.processed.intValue,
-                                        colored = false
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-                                    StatRow(
-                                        text = "Ignored: ",
-                                        value = model.ignored.intValue,
-                                        colored = false
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-                                    StatRow(
-                                        text = "Filtered: ",
-                                        value = model.filtered.intValue,
-                                        colored = false
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-                                    StatRow(
-                                        text = "Entries in DB: ",
-                                        value = model.entriesInDB.intValue,
-                                        colored = false
-                                    )
-                                }
-                                Spacer(Modifier.height(8.dp))
-                                StatRow(
-                                    text = "Sent: ",
-                                    value = model.sent.intValue,
-                                    colored = false
-                                )
-                                Spacer(Modifier.height(8.dp))
-                                StatRow(
-                                    text = "Not sent: ",
-                                    value = model.notSent.intValue,
-                                    colored = true
-                                )
-                                Spacer(Modifier.height(8.dp))
-                                StatRow(
-                                    text = "Errors: ",
-                                    value = model.errors.intValue,
-                                    colored = true
-                                )
+                            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                                StatsData(model = model, activity = this@MainActivity)
                                 Spacer(Modifier.height(16.dp))
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .fillMaxSize()
-                                ) {
-                                    Text(
-                                        "Latest 100 entries in DB:", style = TextStyle(
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.W500
-                                        )
-                                    )
-                                    HorizontalDivider(
-                                        thickness = 0.5.dp,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        when {
-                                            model.last100Items.value.isEmpty() -> Text("No data")
-                                            else ->
-                                                LazyColumn {
-                                                    items(model.last100Items.value) {
-                                                        DbItem(
-                                                            item = it,
-                                                            modifier = Modifier.animateItem()
-                                                        )
-                                                    }
-                                                }
-                                        }
-                                    }
-                                }
-                                // Bottom button
-                                Column() {
-                                    HorizontalDivider(
-                                        thickness = 0.5.dp,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(Color(0xFF7D0000))
-                                            .align(Alignment.CenterHorizontally)
-                                            .padding(4.dp)
-                                    ) {
-                                        TextButton(
-                                            onClick = {
-                                                model.requestNotificationListenerAccess(this@MainActivity)
-                                            },
-                                            modifier = Modifier
-                                        ) {
-                                            Text(
-                                                "Notification access settings\n(Grant \"PushReader\" all notification access )",
-                                                textAlign = TextAlign.Center,
-                                                style = TextStyle(
-                                                    fontWeight = FontWeight.W300,
-                                                    fontSize = 15.sp,
-                                                    color = Color.White
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
+                                LastData(model = model)
                             }
+                            Spacer(Modifier.height(16.dp))
+                            BottomButton(model = model, activity = this@MainActivity)
                         }
                     }
 
@@ -297,6 +144,181 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.LastData(modifier: Modifier = Modifier, model: MainViewModel) {
+    Column(
+        modifier = Modifier.height(650.dp)
+    ) {
+        Text(
+            "Latest 100 entries in DB:", style = TextStyle(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W500
+            )
+        )
+        HorizontalDivider(
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outline
+        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            when {
+                model.last100Items.value.isEmpty() -> Text("No data")
+                else ->
+                    LazyColumn {
+                        items(model.last100Items.value) {
+                            DbItem(
+                                item = it,
+                                modifier = Modifier.animateItem()
+                            )
+                        }
+                    }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.StatsData(
+    modifier: Modifier = Modifier,
+    model: MainViewModel,
+    activity: MainActivity
+) {
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Permission status: ")
+            when (model.isPermissionGranted.value) {
+                true -> Text(
+                    "Granted",
+                    style = TextStyle(color = Color(0xFF19AC0E))
+                )
+
+                else -> Text(
+                    "Denied",
+                    style = TextStyle(color = Color.Red),
+                    modifier = Modifier.clickable {
+                        model.requestNotificationListenerAccess(activity)
+                    }
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Url: ")
+            when (model.url.value.trim()) {
+                "" -> Text(
+                    "Not set",
+                    style = TextStyle(color = Color.Red)
+                )
+
+                else -> Text(
+                    model.url.value.trim(),
+                    style = TextStyle(color = Color(0xFF19AC0E))
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        StatRow(
+            text = "Processed: ",
+            value = model.processed.intValue,
+            colored = false
+        )
+        Spacer(Modifier.height(8.dp))
+        StatRow(
+            text = "Ignored: ",
+            value = model.ignored.intValue,
+            colored = false
+        )
+        Spacer(Modifier.height(8.dp))
+        StatRow(
+            text = "Filtered: ",
+            value = model.filtered.intValue,
+            colored = false
+        )
+        Spacer(Modifier.height(8.dp))
+        StatRow(
+            text = "Entries in DB: ",
+            value = model.entriesInDB.intValue,
+            colored = false
+        )
+    }
+    Spacer(Modifier.height(8.dp))
+    StatRow(
+        text = "Sent: ",
+        value = model.sent.intValue,
+        colored = false
+    )
+    Spacer(Modifier.height(8.dp))
+    StatRow(
+        text = "Not sent: ",
+        value = model.notSent.intValue,
+        colored = true
+    )
+    Spacer(Modifier.height(8.dp))
+    StatRow(
+        text = "Errors: ",
+        value = model.errors.intValue,
+        colored = true
+    )
+}
+
+@Composable
+private fun ColumnScope.BottomButton(
+    modifier: Modifier = Modifier,
+    model: MainViewModel,
+    activity: MainActivity
+) {
+    Column(modifier = Modifier) {
+        HorizontalDivider(
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outline
+        )
+        Spacer(Modifier.height(8.dp))
+
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF7D0000))
+                .align(Alignment.CenterHorizontally)
+                .padding(4.dp)
+        ) {
+            TextButton(
+                onClick = {
+                    model.requestNotificationListenerAccess(activity)
+                },
+                modifier = Modifier
+            ) {
+                Text(
+                    "Notification access settings\n(Grant \"PushReader\" all notification access )",
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontWeight = FontWeight.W300,
+                        fontSize = 15.sp,
+                        color = Color.White
+                    )
+                )
             }
         }
     }
