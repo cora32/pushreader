@@ -22,7 +22,7 @@ import io.alexarix.pushreader.activity.MainActivity
 import io.alexarix.pushreader.getBitmapFromIcon
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
-import io.alexarix.pushreader.repo.room.PRLogEntity
+import io.alexarix.pushreader.repo.room.entity.PRLogEntity
 import io.alexarix.pushreader.toBase64
 import io.alexarix.pushreader.viewmodels.e
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class PushReaderService2 @Inject constructor() : NotificationListenerService() {
+class PushReaderService @Inject constructor() : NotificationListenerService() {
     @Inject
     lateinit var repo: Repo
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -51,15 +51,6 @@ class PushReaderService2 @Inject constructor() : NotificationListenerService() {
         return notification.smallIcon?.let {
             getBitmapFromIcon(context = applicationContext, icon = it)
         }
-//        return try {
-//            val id = notification.smallIcon.resId
-//            "--> RECVD small icon: $id".e
-//            val drawable = externalResources.getDrawable(id) as? VectorDrawable
-//            drawable?.toBitmap()
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//            null
-//        }
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -111,14 +102,14 @@ class PushReaderService2 @Inject constructor() : NotificationListenerService() {
         super.onNotificationPosted(sbn)
 
         scope.launch {
-            val entity = try {
+            try {
                 getEntity(sbn)
             } catch (ex: Exception) {
                 SPM.errors += 1
                 ex.printStackTrace()
+
                 null
-            }
-            entity?.let {
+            }?.let {
                 repo.sendData(it)
             }
         }
@@ -167,7 +158,7 @@ class PushReaderService2 @Inject constructor() : NotificationListenerService() {
         Log.e("PushReader", "  subText: $subText")
 
 //        for (key in extras.keySet()) {
-//            "--> extra has the key: $key".e
+//            "--> extra has the key: $key; val ${extras.get(key)}".e
 //        }
 
         return PRLogEntity(

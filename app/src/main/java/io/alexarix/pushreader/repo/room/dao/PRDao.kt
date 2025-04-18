@@ -1,17 +1,17 @@
-package io.alexarix.pushreader.repo.room
+package io.alexarix.pushreader.repo.room.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import io.alexarix.pushreader.repo.room.entity.PRLogEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Singleton
-
 
 @Singleton
 @Dao
 interface PRDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insert(log: PRLogEntity): Long
 
     @Query("SELECT * FROM PRLogEntity WHERE packageName = :packageName")

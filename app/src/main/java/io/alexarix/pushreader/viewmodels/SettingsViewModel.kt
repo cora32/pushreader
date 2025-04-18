@@ -16,8 +16,9 @@ import io.alexarix.pushreader.IoDispatcher
 import io.alexarix.pushreader.MainDispatcher
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
+import io.alexarix.pushreader.repo.managers.DistinctToggles
+import io.alexarix.pushreader.repo.managers.isToggled
 import kotlinx.coroutines.launch
-import java.net.URL
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -33,7 +34,7 @@ data class AppItemData(
 class SettingsViewModel @Inject constructor(
     application: Application,
     val repo: Repo,
-    @IoDispatcher private val backgroundDispatcher: CoroutineContext,
+    @IoDispatcher private val bgDispatcher: CoroutineContext,
     @MainDispatcher private val uiDispatcher: CoroutineContext
 ) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
@@ -49,7 +50,7 @@ class SettingsViewModel @Inject constructor(
 
     private fun getApps() {
         _isLoading.value = true
-        viewModelScope.launch(backgroundDispatcher) {
+        viewModelScope.launch(bgDispatcher) {
             val context = getApplication<App>()
             val pm = context.packageManager
             val apps = repo.getInstalledApps(context)
@@ -74,7 +75,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleApp(packageName: String, isToggled: Boolean) {
-        viewModelScope.launch(backgroundDispatcher) {
+        viewModelScope.launch(bgDispatcher) {
             if (isToggled) {
                 repo.addApp(packageName)
             } else {
@@ -89,110 +90,26 @@ class SettingsViewModel @Inject constructor(
     }
 
     private fun getDistinctString() = if (
-        !SPM.isUniqueByTicker
-        && !SPM.isUniqueByTitle
-        && !SPM.isUniqueByBigTitle
-        && !SPM.isUniqueByText
-        && !SPM.isUniqueByBigText
+        DistinctToggles.entries.all { !it.isToggled }
     ) "None (Sending all notifications)"
     else {
-        val distinctList = mutableListOf<String>()
-        if (SPM.isUniqueByTicker)
-            distinctList.add("Ticker")
-        if (SPM.isUniqueByTitle)
-            distinctList.add("Title")
-        if (SPM.isUniqueByBigTitle)
-            distinctList.add("Big title")
-        if (SPM.isUniqueByText)
-            distinctList.add("Text")
-        if (SPM.isUniqueByBigText)
-            distinctList.add("Big text")
-        if (SPM.isUniqueBySummary)
-            distinctList.add("Summary")
-        if (SPM.isUniqueBySubtext)
-            distinctList.add("Subtext")
-        if (SPM.isUniqueByInfo)
-            distinctList.add("Info")
+        val distinctList = DistinctToggles.entries
+            .filter { it.isToggled }
+            .map { it.name }
 
         distinctList.joinToString(", ")
     }
 
-    fun toggleUniqueByTitle(value: Boolean) {
-        repo.toggleUniqueByTitle(value)
+    fun setUrl(url: String) = viewModelScope.launch(bgDispatcher) { repo.setUrl(url) }
 
-        updateDistinct()
-    }
+    fun toggleDistinct(toggle: DistinctToggles, value: Boolean) {
+        viewModelScope.launch(bgDispatcher) {
+            repo.toggleDistinct(
+                name = toggle.name,
+                value = value
+            )
 
-    fun toggleUniqueByBigTitle(value: Boolean) {
-        repo.toggleUniqueByBigTitle(value)
-
-        updateDistinct()
-    }
-
-    fun toggleUniqueByText(value: Boolean) {
-        repo.toggleUniqueByText(value)
-
-        updateDistinct()
-    }
-
-    fun toggleUniqueByBigText(value: Boolean) {
-        repo.toggleUniqueByBigText(value)
-
-        updateDistinct()
-    }
-
-    fun toggleUniqueByTicker(value: Boolean) {
-        repo.toggleUniqueByTicker(value)
-
-        updateDistinct()
-    }
-
-    fun toggleUniqueBySummaryText(value: Boolean) {
-        repo.toggleUniqueBySummaryText(value)
-
-        updateDistinct()
-    }
-
-    fun toggleUniqueByInfoText(value: Boolean) {
-        repo.toggleUniqueByInfoText(value)
-
-        updateDistinct()
-    }
-
-    fun toggleUniqueBySubText(value: Boolean) {
-        repo.toggleUniqueBySubText(value)
-
-        updateDistinct()
-    }
-
-    fun setUrl(url: String) {
-        "--> Parsing url: $url".e
-
-        parseUrl(url)?.let {
-            if (it.host.trim().isEmpty())
-                SPM.url = ""
-            else {
-                SPM.protocol = it.protocol.trim()
-                SPM.host = it.host.trim()
-                SPM.port = if (it.port == -1) 443 else it.port
-                SPM.path = it.path.trim()
-                SPM.url = "${SPM.protocol}://${SPM.host}:${SPM.port}${SPM.path}"
-            }
-
-            ("Url parsed: \n" +
-                    "  host: ${SPM.host} \n" +
-                    "  port: ${SPM.port} \n" +
-                    "  port: ${SPM.path} \n" +
-                    "  Result url: ${SPM.host}:${SPM.port}${SPM.path}").e
-            "it.protocol.trim(): ${it.protocol.trim()}".e
-        }
-    }
-
-    private fun parseUrl(urlString: String): URL? {
-        return try {
-            URL(urlString)
-        } catch (e: Exception) {
-            null
+            updateDistinct()
         }
     }
 }

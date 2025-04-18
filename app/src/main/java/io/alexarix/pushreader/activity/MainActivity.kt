@@ -46,19 +46,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import dagger.hilt.android.AndroidEntryPoint
 import io.alexarix.pushreader.ui.theme.PushReaderTheme
+import io.alexarix.pushreader.underlinedInfoText
 import io.alexarix.pushreader.viewmodels.AppDisplayItem
 import io.alexarix.pushreader.viewmodels.MainViewModel
 import io.alexarix.pushreader.viewmodels.e
@@ -87,14 +84,24 @@ class MainActivity : ComponentActivity() {
             PushReaderTheme {
                 Scaffold(
                     topBar = {
-                        TopBar(onSettings = {
-                            this@MainActivity.startActivity(
-                                Intent(
-                                    this@MainActivity,
-                                    SettingsActivity::class.java
+                        TopBar(
+                            onSettings = {
+                                this@MainActivity.startActivity(
+                                    Intent(
+                                        this@MainActivity,
+                                        SettingsActivity::class.java
+                                    )
                                 )
-                            )
-                        })
+                            },
+                            onLogs = {
+                                this@MainActivity.startActivity(
+                                    Intent(
+                                        this@MainActivity,
+                                        LogsActivity::class.java
+                                    )
+                                )
+                            }
+                        )
                     },
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
@@ -396,7 +403,11 @@ private fun Stats(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun TopBar(modifier: Modifier = Modifier, onSettings: () -> Unit) {
+private fun TopBar(
+    modifier: Modifier = Modifier,
+    onSettings: () -> Unit,
+    onLogs: () -> Unit
+) {
     TopAppBar(
         title = {
             Text(
@@ -410,17 +421,32 @@ private fun TopBar(modifier: Modifier = Modifier, onSettings: () -> Unit) {
             )
         },
         actions = {
-            TextButton(onClick = {
-                onSettings()
-            }) {
-                Text(
-                    text = "Settings",
-                    textAlign = TextAlign.Start,
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        color = Color.Black
+            Row {
+                TextButton(onClick = {
+                    onSettings()
+                }) {
+                    Text(
+                        text = "Settings",
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            color = Color.Black
+                        )
                     )
-                )
+                }
+
+                TextButton(onClick = {
+                    onLogs()
+                }) {
+                    Text(
+                        text = "Logs",
+                        textAlign = TextAlign.Start,
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            color = Color.Black
+                        )
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -438,78 +464,19 @@ private fun TopBar(modifier: Modifier = Modifier, onSettings: () -> Unit) {
 @OptIn(ExperimentalEncodingApi::class)
 @Composable
 fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
-    val tickerText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Ticker")
-        }
-        append(": ${item.entity.tickerText}")
-    }
-    val summaryText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Summary")
-        }
-        append(": ${item.entity.summaryText}")
-    }
-    val subText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Subtext")
-        }
-        append(": ${item.entity.subText}")
-    }
-    val info = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Info")
-        }
-        append(": ${item.entity.infoText}")
-    }
-    val titleText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Title")
-        }
-        append(": ${item.entity.title}")
-    }
-    val bigTitleText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Big title")
-        }
-        append(": ${item.entity.bigTitle}")
-    }
-    val textText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Text")
-        }
-        append(": ${item.entity.text}")
-    }
-    val bigTextText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Big text")
-        }
-        append(": ${item.entity.bigText}")
-    }
-    val buttonsText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Buttons")
-        }
-        append(": ${item.entity.actions}")
-    }
-    val categoryText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Category")
-        }
-        append(": ${item.entity.category}")
-    }
-    val iconText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Small Icon")
-        }
-        append(": ")
-    }
-    val largeIconText = buildAnnotatedString {
-        withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-            append("Large Icon")
-        }
-        append(": ")
-    }
+    val tickerText = underlinedInfoText(name = "Ticker", value = item.entity.tickerText)
+    val summaryText = underlinedInfoText(name = "Summary", value = item.entity.summaryText)
+    val subText = underlinedInfoText(name = "Summary", value = item.entity.subText)
+    val info = underlinedInfoText(name = "Info", value = item.entity.infoText)
+    val titleText = underlinedInfoText(name = "Title", value = item.entity.title)
+    val bigTitleText = underlinedInfoText(name = "Big title", value = item.entity.bigTitle)
+    val textText = underlinedInfoText(name = "Text", value = item.entity.text)
+    val bigTextText = underlinedInfoText(name = "Big text", value = item.entity.bigText)
+    val buttonsText = underlinedInfoText(name = "Buttons", value = "${item.entity.actions}")
+    val categoryText = underlinedInfoText(name = "Category", value = item.entity.category)
+    val iconText = underlinedInfoText(name = "Small Icon", value = "size: ")
+    val largeIconText = underlinedInfoText(name = "Large Icon", value = "size: ")
+
 
     val smallIcon =
         item.entity.smallIconStr?.let { Base64.decode(it) }
@@ -638,19 +605,19 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                     fontWeight = FontWeight.W400
                 )
             )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = iconText,
-                        textAlign = TextAlign.Start,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.W400
-                        )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = iconText,
+                    textAlign = TextAlign.Start,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W400
                     )
-                    if (smallIcon != null)
+                )
+                if (smallIcon != null)
                     AsyncImage(
                         model = smallIcon,
                         contentDescription = null,
@@ -659,20 +626,20 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.size(30.dp)
                     ) else Text("none")
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = largeIconText,
-                        textAlign = TextAlign.Start,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.W400
-                        )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = largeIconText,
+                    textAlign = TextAlign.Start,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W400
                     )
-                    if (largeIcon != null)
+                )
+                if (largeIcon != null)
                     AsyncImage(
                         model = largeIcon,
                         contentDescription = null,
@@ -681,7 +648,7 @@ fun LazyItemScope.DbItem(modifier: Modifier = Modifier, item: AppDisplayItem) {
                         contentScale = ContentScale.Fit,
                         modifier = Modifier.size(30.dp)
                     ) else Text("none")
-                }
+            }
 
         }
         HorizontalDivider(

@@ -76,6 +76,8 @@ import coil.compose.AsyncImage
 import dagger.hilt.android.AndroidEntryPoint
 import io.alexarix.pushreader.IconArrowLeft
 import io.alexarix.pushreader.repo.SPM
+import io.alexarix.pushreader.repo.managers.DistinctToggles
+import io.alexarix.pushreader.repo.managers.isToggled
 import io.alexarix.pushreader.ui.theme.PushReaderTheme
 import io.alexarix.pushreader.viewmodels.AppItemData
 import io.alexarix.pushreader.viewmodels.SettingsViewModel
@@ -151,14 +153,10 @@ class SettingsActivity : ComponentActivity() {
                                         color = MaterialTheme.colorScheme.outline
                                     )
                                     UniquenessToggles(
-                                        tickerToggle = { model.toggleUniqueByTicker(it) },
-                                        titleToggle = { model.toggleUniqueByTitle(it) },
-                                        bigTitleToggle = { model.toggleUniqueByBigTitle(it) },
-                                        textToggle = { model.toggleUniqueByText(it) },
-                                        bigTextToggle = { model.toggleUniqueByBigText(it) },
-                                        summaryTextToggle = { model.toggleUniqueBySummaryText(it) },
-                                        infoTextToggle = { model.toggleUniqueByInfoText(it) },
-                                        subTextToggle = { model.toggleUniqueBySubText(it) },
+                                        toggles = DistinctToggles.entries,
+                                        onToggle = { toggle, value ->
+                                            model.toggleDistinct(toggle, value)
+                                        }
                                     )
                                     Spacer(Modifier.height(16.dp))
                                     Text(
@@ -299,14 +297,8 @@ private fun pasteFromClipboard(context: Context): String? {
 @Composable
 fun UniquenessToggles(
     modifier: Modifier = Modifier,
-    tickerToggle: (Boolean) -> Unit,
-    titleToggle: (Boolean) -> Unit,
-    bigTitleToggle: (Boolean) -> Unit,
-    textToggle: (Boolean) -> Unit,
-    bigTextToggle: (Boolean) -> Unit,
-    summaryTextToggle: (Boolean) -> Unit,
-    infoTextToggle: (Boolean) -> Unit,
-    subTextToggle: (Boolean) -> Unit,
+    toggles: List<DistinctToggles>,
+    onToggle: (DistinctToggles, Boolean) -> Unit
 ) {
     val switchColors =
         SwitchDefaults.colors(
@@ -320,54 +312,14 @@ fun UniquenessToggles(
         )
 
     Column {
-        UniquenessToggle(
-            name = "Ticker",
-            colors = switchColors,
-            onToggle = tickerToggle,
-            isToggled = SPM.isUniqueByTicker
-        )
-        UniquenessToggle(
-            name = "Summary",
-            colors = switchColors,
-            onToggle = summaryTextToggle,
-            isToggled = SPM.isUniqueBySummary
-        )
-        UniquenessToggle(
-            name = "Info",
-            colors = switchColors,
-            onToggle = infoTextToggle,
-            isToggled = SPM.isUniqueByInfo
-        )
-        UniquenessToggle(
-            name = "Subtext",
-            colors = switchColors,
-            onToggle = subTextToggle,
-            isToggled = SPM.isUniqueBySubtext
-        )
-        UniquenessToggle(
-            name = "Title",
-            colors = switchColors,
-            onToggle = titleToggle,
-            isToggled = SPM.isUniqueByTitle
-        )
-        UniquenessToggle(
-            name = "BigTitle",
-            colors = switchColors,
-            onToggle = bigTitleToggle,
-            isToggled = SPM.isUniqueByBigTitle
-        )
-        UniquenessToggle(
-            name = "Text",
-            colors = switchColors,
-            onToggle = textToggle,
-            isToggled = SPM.isUniqueByText
-        )
-        UniquenessToggle(
-            name = "BigText",
-            colors = switchColors,
-            onToggle = bigTextToggle,
-            isToggled = SPM.isUniqueByBigText
-        )
+        toggles.forEach {
+            UniquenessToggle(
+                toggle = it,
+                colors = switchColors,
+                onToggle = onToggle,
+            )
+
+        }
     }
 }
 
@@ -402,22 +354,21 @@ fun AppList(
 @Composable
 fun UniquenessToggle(
     modifier: Modifier = Modifier,
-    name: String,
-    isToggled: Boolean,
+    toggle: DistinctToggles,
     colors: SwitchColors,
-    onToggle: (Boolean) -> Unit
+    onToggle: (DistinctToggles, Boolean) -> Unit
 ) {
-    var isChecked by remember { mutableStateOf(isToggled) }
-    fun onChecked(value: Boolean) {
+    var isChecked by remember { mutableStateOf(toggle.isToggled) }
+    fun onChecked(toggle: DistinctToggles, value: Boolean) {
         isChecked = value
-        onToggle(value)
+        onToggle(toggle, value)
     }
 
     Row(
         modifier = Modifier
             .toggleable(
                 value = isChecked,
-                onValueChange = { onChecked(it) },
+                onValueChange = { onChecked(toggle, it) },
                 role = Role.Switch,
             )
             .fillMaxWidth()
@@ -426,7 +377,7 @@ fun UniquenessToggle(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = name, style = TextStyle(
+            text = toggle.name, style = TextStyle(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.W400
             )
@@ -437,7 +388,7 @@ fun UniquenessToggle(
             checked = isChecked,
             colors = colors,
             onCheckedChange = {
-                onChecked(it)
+                onChecked(toggle, it)
             },
         )
     }

@@ -25,8 +25,8 @@ import io.alexarix.pushreader.R
 import io.alexarix.pushreader.activity.MainActivity
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
-import io.alexarix.pushreader.repo.room.PRLogEntity
-import io.alexarix.pushreader.services.PushReaderService2
+import io.alexarix.pushreader.repo.room.entity.PRLogEntity
+import io.alexarix.pushreader.services.PushReaderService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,7 +38,7 @@ data class AppDisplayItem(val entity: PRLogEntity, val name: String, val icon: D
 class MainViewModel @Inject constructor(
     application: Application,
     val repo: Repo,
-    @IoDispatcher private val backgroundDispatcher: CoroutineContext,
+    @IoDispatcher private val bgDispatcher: CoroutineContext,
     @MainDispatcher private val uiDispatcher: CoroutineContext
 ) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
@@ -68,13 +68,13 @@ class MainViewModel @Inject constructor(
 
     init {
         val context = getApplication<App>()
-        viewModelScope.launch(backgroundDispatcher) {
+        viewModelScope.launch(bgDispatcher) {
             repo.getDataFlow().collect {
                 "--> Item collected: $it".e
                 _last100Items.value = repo.getLast100Items().toAppDisplayItem(context)
             }
         }
-        viewModelScope.launch(backgroundDispatcher) {
+        viewModelScope.launch(bgDispatcher) {
             while (true) {
                 delay(2000L)
                 checkStatus()
@@ -147,7 +147,7 @@ class MainViewModel @Inject constructor(
                     "${it.service.className} ").e
         }
 
-        return result.map { it.service.className }.contains(PushReaderService2::class.java.name)
+        return result.map { it.service.className }.contains(PushReaderService::class.java.name)
     }
 
     private fun getRunningServicesForApp(): List<ActivityManager.RunningServiceInfo> {
@@ -168,13 +168,13 @@ class MainViewModel @Inject constructor(
     }
 
     private fun attemptSendUnsent() {
-        viewModelScope.launch(backgroundDispatcher) {
+        viewModelScope.launch(bgDispatcher) {
             repo.attemptSendUnsent()
         }
     }
 
     private fun checkStatus() {
-        viewModelScope.launch(backgroundDispatcher) {
+        viewModelScope.launch(bgDispatcher) {
             _sent.intValue = SPM.sent
             _notSent.intValue = repo.countUnsent()
             _processed.intValue = SPM.processed
@@ -196,7 +196,7 @@ class MainViewModel @Inject constructor(
         val intent =
             Intent(
                 activity,
-                PushReaderService2::class.java
+                PushReaderService::class.java
             )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             activity.startForegroundService(intent)
@@ -208,7 +208,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun checkAsync() {
-        viewModelScope.launch(backgroundDispatcher) {
+        viewModelScope.launch(bgDispatcher) {
             delay(500L)
             checkServiceStatus()
         }

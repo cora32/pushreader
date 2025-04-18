@@ -1,0 +1,329 @@
+package io.alexarix.pushreader.activity
+
+import android.os.Build
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import dagger.hilt.android.AndroidEntryPoint
+import io.alexarix.pushreader.IconArrowLeft
+import io.alexarix.pushreader.repo.managers.LogType
+import io.alexarix.pushreader.repo.room.entity.PRServiceLogEntity
+import io.alexarix.pushreader.ui.theme.PushReaderTheme
+import io.alexarix.pushreader.underlinedInfoText
+import io.alexarix.pushreader.viewmodels.LogsViewModel
+
+
+@AndroidEntryPoint
+class LogsActivity : ComponentActivity() {
+    val model by viewModels<LogsViewModel>()
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        lifecycle.removeObserver(model)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        lifecycle.addObserver(model)
+
+        setContent {
+            PushReaderTheme {
+                Scaffold(
+                    topBar = {
+                        TopBar(onBack = { this@LogsActivity.finish() })
+                    },
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
+                    val state = rememberScrollState()
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+                            .padding(bottom = 32.dp, top = 16.dp, start = 8.dp, end = 8.dp)
+                    ) {
+                        Column {
+                            LogToggle(
+                                isToggled = model.isLogEnabled.value,
+                                onToggle = { model.toggleLog(it) }
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            when (model.isLoading.value) {
+                                true -> Loader(width = 100.dp, height = 10.dp)
+
+                                false ->
+                                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                        items(model.logs.value) { item ->
+                                            LogEntry(entry = item)
+                                        }
+                                    }
+                            }
+                        }
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        RuntimePermissionsDialog(
+                            onPermissionDenied = {},
+                            onPermissionGranted = {},
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogToggle(
+    modifier: Modifier = Modifier,
+    isToggled: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    var isChecked by remember { mutableStateOf(isToggled) }
+    fun onChecked(value: Boolean) {
+        isChecked = value
+        onToggle(value)
+    }
+
+    Row(
+        modifier = Modifier
+            .toggleable(
+                value = isChecked,
+                onValueChange = { onChecked(it) },
+                role = Role.Switch,
+            )
+            .fillMaxWidth()
+            .padding(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Enable log", style = TextStyle(
+                fontSize = 15.sp,
+                fontWeight = FontWeight.W400
+            )
+        )
+        Spacer(Modifier.width(8.dp))
+
+        Switch(
+            checked = isChecked,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color(0xFFFFFFFF),
+                checkedTrackColor = Color(0xFF3EB506),
+                checkedBorderColor = Color.Transparent,
+
+                uncheckedThumbColor = Color(0xFFFFFFFF),
+                uncheckedTrackColor = Color(0xFFFF2C56),
+                uncheckedBorderColor = Color.Transparent,
+            ),
+            onCheckedChange = {
+                onChecked(it)
+            },
+        )
+    }
+}
+
+@Composable
+private fun LogEntry(modifier: Modifier = Modifier, entry: PRServiceLogEntity) {
+    val color = when (entry.logType) {
+        LogType.OK -> Color(0xAB11971B)
+        LogType.Unknown -> Color(0xA9ACA413)
+        LogType.Info -> Color(0x9C0D7B97)
+        LogType.Fail -> Color(0x99AA1010)
+        null -> Color.Unspecified
+    }
+
+    val tickerText = underlinedInfoText(name = "Ticker", value = entry.tickerText)
+    val summaryText = underlinedInfoText(name = "Summary", value = entry.summaryText)
+    val subText = underlinedInfoText(name = "Summary", value = entry.subText)
+    val info = underlinedInfoText(name = "Info", value = entry.infoText)
+    val titleText = underlinedInfoText(name = "Title", value = entry.title)
+    val bigTitleText = underlinedInfoText(name = "Big title", value = entry.bigTitle)
+    val textText = underlinedInfoText(name = "Text", value = entry.text)
+    val bigTextText = underlinedInfoText(name = "Big text", value = entry.bigText)
+
+    Column(
+        modifier = Modifier
+            .background(color)
+            .padding(4.dp)
+    ) {
+        Text(
+            text = "${sdf.format(entry.timestamp)}",
+            textAlign = TextAlign.Start,
+            style = TextStyle(
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W700
+            ),
+            modifier = Modifier.align(Alignment.End)
+        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "${entry.reason}",
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.W800
+                )
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = tickerText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = summaryText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = subText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = info,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = titleText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = bigTitleText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = textText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = bigTextText,
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W500
+                )
+            )
+            Spacer(Modifier.height(6.dp))
+        }
+        HorizontalDivider(
+            thickness = 0.5.dp,
+            color = MaterialTheme.colorScheme.outline
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TopBar(modifier: Modifier = Modifier, onBack: () -> Unit) {
+    TopAppBar(
+        title = {
+            Text(
+                text = "Logs",
+                textAlign = TextAlign.Start,
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.W700,
+                ),
+                maxLines = 1,
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = {
+                onBack()
+            }) {
+                Icon(IconArrowLeft, "backIcon")
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.White,
+            navigationIconContentColor = Color.Black,
+            titleContentColor = Color.Black,
+            actionIconContentColor = Color.Black,
+        ),
+        modifier = Modifier.clip(
+            shape = RoundedCornerShape(bottomStart = 25.dp, bottomEnd = 25.dp)
+        )
+    )
+}

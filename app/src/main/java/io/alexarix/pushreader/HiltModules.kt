@@ -8,13 +8,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.alexarix.pushreader.repo.RestApi
 import io.alexarix.pushreader.repo.getRetrofit
-import io.alexarix.pushreader.repo.room.PRDao
+import io.alexarix.pushreader.repo.room.dao.PRDao
+import io.alexarix.pushreader.repo.room.dao.ServiceLogDao
 import io.alexarix.pushreader.repo.room.getDB
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlin.coroutines.CoroutineContext
-import kotlin.jvm.java
 
 @Retention(AnnotationRetention.BINARY)
 @Qualifier
@@ -52,6 +52,10 @@ object HiltModules {
     @Provides
     @Singleton
     fun getDao(@ApplicationContext context: Context): PRDao = getDB(context).dao()
+
+    @Provides
+    @Singleton
+    fun getLogDao(@ApplicationContext context: Context): ServiceLogDao = getDB(context).logDao()
 
     @Provides
     @Singleton

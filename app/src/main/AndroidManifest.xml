@@ -40,6 +40,11 @@
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.PushReader">
         </activity>
+        <activity
+            android:name=".activity.LogsActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.PushReader"></activity>
 
         <receiver
             android:name=".receivers.RebootReceiver"
@@ -51,7 +56,7 @@
         </receiver>
 
         <service
-            android:name=".services.PushReaderService2"
+            android:name=".services.PushReaderService"
             android:exported="false"
             android:label="Alexarix Pushreader Listener"
             android:foregroundServiceType="remoteMessaging"

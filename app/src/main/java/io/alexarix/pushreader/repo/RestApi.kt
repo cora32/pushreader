@@ -2,7 +2,7 @@ package io.alexarix.pushreader.repo
 
 import android.content.Context
 import com.google.gson.GsonBuilder
-import io.alexarix.pushreader.repo.room.PRLogEntity
+import io.alexarix.pushreader.repo.room.entity.PRLogEntity
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -14,37 +14,11 @@ import retrofit2.http.POST
 import retrofit2.http.Url
 import java.io.File
 
-//class HostSelectionInterceptor: Interceptor {
-//
-//    override fun intercept(chain: Interceptor.Chain): Response {
-//        var request = chain.request()
-//
-//        val host: String = SPM.host
-//        val port: Int = SPM.port
-//
-//        val newUrl = request.url.newBuilder()
-//            .scheme(SPM.protocol)
-//            .host(host)
-//            .port(port)
-//            .addPathSegment(SPM.path)
-//            .build()
-//
-//        request = request.newBuilder()
-//            .url(newUrl)
-//            .build()
-//
-//        return chain.proceed(request)
-//    }
-//}
-
 fun getClient(directory: File): OkHttpClient {
     val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
         setLevel(HttpLoggingInterceptor.Level.BODY)
     }
-//    val hostInterceptor = HostSelectionInterceptor()
-
     return OkHttpClient.Builder()
-//        .addInterceptor(hostInterceptor)
         .addInterceptor(httpLoggingInterceptor)
         .cache(
             Cache(

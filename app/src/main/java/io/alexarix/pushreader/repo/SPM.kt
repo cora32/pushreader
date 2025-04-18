@@ -9,14 +9,7 @@ const val protocolKey = "protocolKey"
 const val hostKey = "hostKey"
 const val portKey = "portKey"
 const val pathKey = "pathKey"
-const val uSubtextKey = "uSubtextKey"
-const val uInfoKey = "uInfoKey"
-const val uSummaryKey = "uSummaryKey"
-const val uTitleKey = "uTitleKey"
-const val uTickerKey = "uTickerKey"
-const val uBigTitleKey = "uBigTitleKey"
-const val uTextKey = "uTextKey"
-const val uBigTextKey = "uBigTextKey"
+const val isLogEnabledKey = "isLogEnabledKey"
 const val packagesNamesKey = "packagesNamesKey"
 const val sentKey = "sentKey"
 const val processedKey = "processedKey"
@@ -24,7 +17,6 @@ const val ignoredKey = "ignoredKey"
 const val filteredKey = "filteredKey"
 const val errorsKey = "errorsKey"
 const val urlKey = "urlKey"
-//const val countUniqueKey = "countUniqueKey"
 
 class SPM(val application: Application) {
     fun init() {
@@ -37,84 +29,35 @@ class SPM(val application: Application) {
         var protocol: String = ""
             get() = preferences.getString(protocolKey, "") ?: ""
             set(newValue) {
-                preferences.edit() { putString(protocolKey, newValue) }
+                preferences.edit(commit = true) { putString(protocolKey, newValue) }
                 field = newValue
             }
 
         var host: String = ""
             get() = preferences.getString(hostKey, "") ?: ""
             set(newValue) {
-                preferences.edit() { putString(hostKey, newValue) }
+                preferences.edit(commit = true) { putString(hostKey, newValue) }
                 field = newValue
             }
 
         var port: Int = 443
             get() = preferences.getInt(portKey, 443)
             set(newValue) {
-                preferences.edit() { putInt(portKey, newValue) }
+                preferences.edit(commit = true) { putInt(portKey, newValue) }
                 field = newValue
             }
 
         var path: String = ""
             get() = preferences.getString(pathKey, "") ?: ""
             set(newValue) {
-                preferences.edit() { putString(pathKey, newValue) }
+                preferences.edit(commit = true) { putString(pathKey, newValue) }
                 field = newValue
             }
 
-        var isUniqueByTitle: Boolean = false
-            get() = preferences.getBoolean(uTitleKey, false)
+        var isLogEnabled: Boolean = false
+            get() = preferences.getBoolean(isLogEnabledKey, false)
             set(newValue) {
-                preferences.edit() { putBoolean(uTitleKey, newValue) }
-                field = newValue
-            }
-
-        var isUniqueByTicker: Boolean = false
-            get() = preferences.getBoolean(uTickerKey, false)
-            set(newValue) {
-                preferences.edit() { putBoolean(uTickerKey, newValue) }
-                field = newValue
-            }
-
-        var isUniqueBySummary: Boolean = false
-            get() = preferences.getBoolean(uSummaryKey, false)
-            set(newValue) {
-                preferences.edit() { putBoolean(uSummaryKey, newValue) }
-                field = newValue
-            }
-
-        var isUniqueByInfo: Boolean = false
-            get() = preferences.getBoolean(uInfoKey, false)
-            set(newValue) {
-                preferences.edit() { putBoolean(uInfoKey, newValue) }
-                field = newValue
-            }
-
-        var isUniqueBySubtext: Boolean = false
-            get() = preferences.getBoolean(uSubtextKey, false)
-            set(newValue) {
-                preferences.edit() { putBoolean(uSubtextKey, newValue) }
-                field = newValue
-            }
-
-        var isUniqueByBigTitle: Boolean = false
-            get() = preferences.getBoolean(uBigTitleKey, false)
-            set(newValue) {
-                preferences.edit() { putBoolean(uBigTitleKey, newValue) }
-                field = newValue
-            }
-
-        var isUniqueByText: Boolean = false
-            get() = preferences.getBoolean(uTextKey, false)
-            set(newValue) {
-                preferences.edit() { putBoolean(uTextKey, newValue) }
-                field = newValue
-            }
-
-        var isUniqueByBigText: Boolean = false
-            get() = preferences.getBoolean(uBigTextKey, false)
-            set(newValue) {
-                preferences.edit() { putBoolean(uBigTextKey, newValue) }
+                preferences.edit(commit = true) { putBoolean(isLogEnabledKey, newValue) }
                 field = newValue
             }
 
@@ -163,9 +106,14 @@ class SPM(val application: Application) {
         var url: String = ""
             get() = preferences.getString(urlKey, "") ?: ""
             set(newValue) {
-                preferences.edit() { putString(urlKey, newValue) }
+                preferences.edit(commit = true) { putString(urlKey, newValue) }
                 field = newValue
             }
+
+        fun isDistinctToggled(name: String): Boolean = preferences.getBoolean(name, false)
+
+        fun toggleDistinct(name: String, value: Boolean) =
+            preferences.edit(commit = true) { putBoolean(name, value) }
 
 //        var countUnique: Int = 0
 //            get() = preferences.getInt(countUniqueKey, 0)
