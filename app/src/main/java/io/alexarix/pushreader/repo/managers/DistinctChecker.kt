@@ -46,14 +46,14 @@ class DistinctChecker @Inject constructor(
         DistinctToggles.entries.all { !it.isToggled }.apply {
             if (true)
                 logger.logUnknown(
-                    reason = "Filtering is disabled - Sending all entries",
+                    reason = "Filtering is disabled - Processing all entries",
                     entity = entity,
                 )
         }
 
-    private suspend fun anyOn(entity: PRLogEntity) = DistinctToggles.entries
+    private suspend fun allToggledTrue(entity: PRLogEntity) = DistinctToggles.entries
         .filter { it.isToggled }
-        .all {
+        .any {
             when (it) {
                 DistinctToggles.Summary -> isUniqueBySummary(
                     entity
@@ -88,30 +88,62 @@ class DistinctChecker @Inject constructor(
         }
 
     suspend fun isUnique(entity: PRLogEntity): Boolean {
-        return allOff(entity = entity) || anyOn(entity = entity)
+        return allOff(entity = entity) || allToggledTrue(entity = entity)
     }
 
     private suspend fun isUniqueBySummary(entity: PRLogEntity): Boolean =
-        dao.countUniqueBySummary(entity.summaryText.toString()) == 0
+        (entity.summaryText?.let {
+            dao.countUniqueBySummary(it).apply {
+                "There is $this entries with summaryText = $it".e
+            }
+        } ?: dao.countNullSummary()) == 0
 
     private suspend fun isUniqueByInfo(entity: PRLogEntity): Boolean =
-        dao.countUniqueByInfo(entity.infoText.toString()) == 0
+        (entity.infoText?.let {
+            dao.countUniqueByInfo(it).apply {
+                "There is $this entries with infoText = $it".e
+            }
+        } ?: dao.countNullInfoText()) == 0
 
     private suspend fun isUniqueBySubtext(entity: PRLogEntity): Boolean =
-        dao.countUniqueBySubText(entity.subText.toString()) == 0
+        (entity.subText?.let {
+            dao.countUniqueBySubText(it).apply {
+                "There is $this entries with subText = $it".e
+            }
+        } ?: dao.countNullSubText()) == 0
 
     private suspend fun isUniqueByTicker(entity: PRLogEntity): Boolean =
-        dao.countUniqueByTicker(entity.tickerText.toString()) == 0
+        (entity.tickerText?.let {
+            dao.countUniqueByTicker(it).apply {
+                "There is $this entries with tickerText = $it".e
+            }
+        } ?: dao.countNullTickerText()) == 0
 
     private suspend fun isUniqueByTitle(entity: PRLogEntity): Boolean =
-        dao.countUniqueByTitle(entity.title.toString()) == 0
+        (entity.title?.let {
+            dao.countUniqueByTitle(it).apply {
+                "There is $this entries with title = $it".e
+            }
+        } ?: dao.countNullTitle()) == 0
 
     private suspend fun isUniqueByBigTitle(entity: PRLogEntity): Boolean =
-        dao.countUniqueByBigTitle(entity.bigTitle.toString()) == 0
+        (entity.bigTitle?.let {
+            dao.countUniqueByBigTitle(it).apply {
+                "There is $this entries with bigTitle = $it".e
+            }
+        } ?: dao.countNullBigTitle()) == 0
 
     private suspend fun isUniqueByText(entity: PRLogEntity): Boolean =
-        dao.countUniqueByText(entity.text.toString()) == 0
+        (entity.text?.let {
+            dao.countUniqueByText(it).apply {
+                "There is $this entries with text = $it".e
+            }
+        } ?: dao.countNullText()) == 0
 
     private suspend fun isUniqueByBigText(entity: PRLogEntity): Boolean =
-        dao.countUniqueByBigText(entity.bigText.toString()) == 0
+        (entity.bigText?.let {
+            dao.countUniqueByBigText(it).apply {
+                "There is $this entries with bigText = $it".e
+            }
+        } ?: dao.countNullBigText()) == 0
 }

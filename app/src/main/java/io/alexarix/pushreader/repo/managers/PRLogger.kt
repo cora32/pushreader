@@ -86,5 +86,7 @@ class PRLogger @Inject constructor(val dao: ServiceLogDao) {
         logEntity(reason = reason, logType = LogType.Info, entity = entity)
     }
 
-    suspend fun getLogs() = dao.getAll()
+    suspend fun getLogs(): List<PRServiceLogEntity> = dao.getAll()
+
+    suspend fun getLogs(flags: List<LogType>) = dao.getAll(flags)
 }

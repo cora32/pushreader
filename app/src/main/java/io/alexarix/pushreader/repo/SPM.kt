@@ -10,6 +10,10 @@ const val hostKey = "hostKey"
 const val portKey = "portKey"
 const val pathKey = "pathKey"
 const val isLogEnabledKey = "isLogEnabledKey"
+const val isShowUnknownEnabledKey = "isShowUnknownEnabledKey"
+const val isShowInfoEnabledKey = "isShowInfoEnabledKey"
+const val isShowOkEnabledKey = "isShowOkEnabledKey"
+const val isShowErrorsEnabledKey = "isShowErrorsEnabledKey"
 const val packagesNamesKey = "packagesNamesKey"
 const val sentKey = "sentKey"
 const val processedKey = "processedKey"
@@ -58,6 +62,34 @@ class SPM(val application: Application) {
             get() = preferences.getBoolean(isLogEnabledKey, false)
             set(newValue) {
                 preferences.edit(commit = true) { putBoolean(isLogEnabledKey, newValue) }
+                field = newValue
+            }
+
+        var isShowUnknownEnabled: Boolean = false
+            get() = preferences.getBoolean(isShowUnknownEnabledKey, false)
+            set(newValue) {
+                preferences.edit(commit = true) { putBoolean(isShowUnknownEnabledKey, newValue) }
+                field = newValue
+            }
+
+        var isShowInfoEnabled: Boolean = false
+            get() = preferences.getBoolean(isShowInfoEnabledKey, false)
+            set(newValue) {
+                preferences.edit(commit = true) { putBoolean(isShowInfoEnabledKey, newValue) }
+                field = newValue
+            }
+
+        var isShowOkEnabled: Boolean = false
+            get() = preferences.getBoolean(isShowOkEnabledKey, false)
+            set(newValue) {
+                preferences.edit(commit = true) { putBoolean(isShowOkEnabledKey, newValue) }
+                field = newValue
+            }
+
+        var isShowErrorsEnabled: Boolean = false
+            get() = preferences.getBoolean(isShowErrorsEnabledKey, false)
+            set(newValue) {
+                preferences.edit(commit = true) { putBoolean(isShowErrorsEnabledKey, newValue) }
                 field = newValue
             }
 

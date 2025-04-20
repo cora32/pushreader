@@ -8,7 +8,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,8 +19,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -86,32 +87,37 @@ class LogsActivity : ComponentActivity() {
                     },
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
-                    Box(
-                        contentAlignment = Alignment.Center,
+                    Column(
                         modifier = Modifier
-                            .padding(innerPadding)
                             .fillMaxSize()
+                            .padding(innerPadding)
                             .padding(bottom = 8.dp, top = 16.dp, start = 8.dp, end = 8.dp)
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        Column {
-                            LogToggle(
-                                isToggled = model.isLogEnabled.value,
-                                onToggle = { model.toggleLog(it) }
-                            )
-                            Spacer(Modifier.height(16.dp))
-                            when (model.isLoading.value) {
-                                true -> Loader(width = 100.dp, height = 10.dp)
+                        LogToggle(
+                            text = "Enable log",
+                            isToggled = model.isLogEnabled.value,
+                            onToggle = { model.toggleLog(it) }
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        if (model.isLogEnabled.value)
+                            ToggleBlock(model = model)
+                        Spacer(Modifier.height(16.dp))
+                        when (model.isLoading.value) {
+                            true ->
+                                Loader(width = 150.dp, height = 6.dp)
 
-                                false ->
-                                    LazyColumn(
-                                        state = listState,
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        items(model.logs.value) { item ->
-                                            LogEntry(entry = item)
-                                        }
+                            false ->
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(750.dp)
+                                ) {
+                                    items(model.logs.value) { item ->
+                                        LogEntry(entry = item)
                                     }
-                            }
+                                }
                         }
                     }
 
@@ -128,8 +134,35 @@ class LogsActivity : ComponentActivity() {
 }
 
 @Composable
+private fun ToggleBlock(modifier: Modifier = Modifier, model: LogsViewModel) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        LogToggle(
+            text = "Show errors",
+            isToggled = model.isShowErrors.value,
+            onToggle = model::toggleShowErrors
+        )
+        LogToggle(
+            text = "Show info",
+            isToggled = model.isShowInfo.value,
+            onToggle = model::toggleShowInfo
+        )
+        LogToggle(
+            text = "Show OK",
+            isToggled = model.isShowOk.value,
+            onToggle = model::toggleShowOk
+        )
+        LogToggle(
+            text = "Show unknown",
+            isToggled = model.isShowUnknown.value,
+            onToggle = model::toggleShowUnknown
+        )
+    }
+}
+
+@Composable
 private fun LogToggle(
     modifier: Modifier = Modifier,
+    text: String,
     isToggled: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
@@ -152,7 +185,7 @@ private fun LogToggle(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "Enable log", style = TextStyle(
+            text = text, style = TextStyle(
                 fontSize = 15.sp,
                 fontWeight = FontWeight.W400
             )

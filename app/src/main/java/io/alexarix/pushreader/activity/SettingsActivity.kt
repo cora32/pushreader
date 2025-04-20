@@ -121,57 +121,59 @@ class SettingsActivity : ComponentActivity() {
                     ) {
                         val appString =
                             if (model.selectedApps.intValue == 0) " - Intercepting all" else ""
-                        when (model.isLoading.value) {
-                            true -> Loader(width = 100.dp, height = 10.dp)
-                            false ->
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .verticalScroll(state),
-                                ) {
-                                    Text(
-                                        "Url:", style = TextStyle(
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.W500
-                                        )
-                                    )
-                                    HorizontalDivider(
-                                        thickness = 0.5.dp,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
-                                    Spacer(Modifier.height(8.dp))
-                                    UrlField(model = model)
-                                    Spacer(Modifier.height(16.dp))
-                                    Text(
-                                        "Compare uniqueness by: ${model.distinctBy.value}",
-                                        style = TextStyle(
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.W500
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                    HorizontalDivider(
-                                        thickness = 0.5.dp,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
-                                    UniquenessToggles(
-                                        toggles = DistinctToggles.entries,
-                                        onToggle = { toggle, value ->
-                                            model.toggleDistinct(toggle, value)
-                                        }
-                                    )
-                                    Spacer(Modifier.height(16.dp))
-                                    Text(
-                                        "Intercept notification from: (selected: ${model.selectedApps.intValue}$appString)",
-                                        style = TextStyle(
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.W500
-                                        )
-                                    )
-                                    HorizontalDivider(
-                                        thickness = 0.5.dp,
-                                        color = MaterialTheme.colorScheme.outline
-                                    )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(state),
+                        ) {
+                            Text(
+                                "Url:", style = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W500
+                                )
+                            )
+                            HorizontalDivider(
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            UrlField(model = model)
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                "Compare uniqueness by: ${model.distinctBy.value}",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W500
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            HorizontalDivider(
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                            UniquenessToggles(
+                                toggles = DistinctToggles.entries,
+                                onToggle = { toggle, value ->
+                                    model.toggleDistinct(toggle, value)
+                                }
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            Text(
+                                "Intercept notification from: (selected: ${model.selectedApps.intValue}$appString)",
+                                style = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.W500
+                                )
+                            )
+                            HorizontalDivider(
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                            when (model.isLoading.value) {
+                                true ->
+                                    Loader(width = 150.dp, height = 6.dp)
+
+                                false ->
                                     AppList(
                                         appList = model.appList.value,
                                         modifier = Modifier
@@ -180,7 +182,7 @@ class SettingsActivity : ComponentActivity() {
                                     ) { packageName, enabled ->
                                         model.toggleApp(packageName, enabled)
                                     }
-                                }
+                            }
                         }
                     }
 
@@ -480,16 +482,22 @@ fun Loader(
     width: Dp,
     height: Dp,
     color: Color = Color.Red,
-    trackColor: Color = Color(0xFF19AC0E)
+    trackColor: Color = Color(0xFF0E62AC)
 ) {
-    LinearWavyProgressIndicator(
+    Box(
         modifier = Modifier
-//            .background(Color(0x974984F8))
-            .width(width)
-            .height(height),
-        color = color,
-        trackColor = trackColor,
-    )
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        LinearWavyProgressIndicator(
+            modifier = Modifier
+                .width(width)
+                .height(height),
+            color = color,
+            trackColor = trackColor,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -91,7 +91,7 @@ class SettingsViewModel @Inject constructor(
 
     private fun getDistinctString() = if (
         DistinctToggles.entries.all { !it.isToggled }
-    ) "None (Sending all notifications)"
+    ) "None (Processing all notifications)"
     else {
         val distinctList = DistinctToggles.entries
             .filter { it.isToggled }

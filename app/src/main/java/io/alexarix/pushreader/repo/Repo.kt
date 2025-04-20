@@ -6,10 +6,12 @@ import android.content.pm.PackageManager
 import io.alexarix.pushreader.BuildConfig
 import io.alexarix.pushreader.repo.managers.DistinctChecker
 import io.alexarix.pushreader.repo.managers.DistinctToggles
+import io.alexarix.pushreader.repo.managers.LogType
 import io.alexarix.pushreader.repo.managers.PRLogger
 import io.alexarix.pushreader.repo.managers.isToggled
 import io.alexarix.pushreader.repo.room.dao.PRDao
 import io.alexarix.pushreader.repo.room.entity.PRLogEntity
+import io.alexarix.pushreader.repo.room.entity.PRServiceLogEntity
 import io.alexarix.pushreader.viewmodels.e
 import java.net.URL
 import javax.inject.Inject
@@ -197,7 +199,28 @@ class Repo @Inject constructor(
             )
         }
 
-    suspend fun getLogs() = logger.getLogs()
+    suspend fun getLogs(
+        getUnknown: Boolean,
+        getInfo: Boolean,
+        getOk: Boolean,
+        getErrors: Boolean
+    ): List<PRServiceLogEntity> {
+        val flags = mutableListOf<LogType>().apply {
+            if (getUnknown)
+                add(LogType.Unknown)
+            if (getInfo)
+                add(LogType.Info)
+            if (getOk)
+                add(LogType.OK)
+            if (getErrors)
+                add(LogType.Fail)
+        }
+
+        return if (flags.isEmpty())
+            logger.getLogs()
+        else
+            logger.getLogs(flags = flags.apply { "Requesting logs with flags: $flags".e })
+    }
 
     fun getLogsDataFlow() = logger.getDataFlow()
 
@@ -233,8 +256,32 @@ class Repo @Inject constructor(
 
     fun isLogEnabled(): Boolean = SPM.isLogEnabled
 
+    fun isShowUnknownEnabled(): Boolean = SPM.isShowUnknownEnabled
+
+    fun isShowOkEnabled(): Boolean = SPM.isShowOkEnabled
+
+    fun isShowErrorsEnabled(): Boolean = SPM.isShowErrorsEnabled
+
+    fun isShowInfoEnabled(): Boolean = SPM.isShowInfoEnabled
+
     suspend fun toggleLog(value: Boolean) {
         logger.logInfo(reason = if (value) "Log enabled" else "Log disabled")
         SPM.isLogEnabled = value
+    }
+
+    fun toggleShowErrors(value: Boolean) {
+        SPM.isShowErrorsEnabled = value
+    }
+
+    fun toggleShowInfo(value: Boolean) {
+        SPM.isShowInfoEnabled = value
+    }
+
+    fun toggleShowOk(value: Boolean) {
+        SPM.isShowOkEnabled = value
+    }
+
+    fun toggleShowUnknown(value: Boolean) {
+        SPM.isShowUnknownEnabled = value
     }
 }

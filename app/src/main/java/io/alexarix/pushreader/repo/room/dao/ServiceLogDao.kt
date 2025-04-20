@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import io.alexarix.pushreader.repo.managers.LogType
 import io.alexarix.pushreader.repo.room.entity.PRServiceLogEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Singleton
@@ -13,6 +14,9 @@ import javax.inject.Singleton
 interface ServiceLogDao {
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insert(log: PRServiceLogEntity): Long
+
+    @Query("SELECT * FROM PRServiceLogEntity WHERE logType IN (:flags) ORDER BY timestamp DESC")
+    suspend fun getAll(flags: List<LogType>): List<PRServiceLogEntity>
 
     @Query("SELECT * FROM PRServiceLogEntity ORDER BY timestamp DESC")
     suspend fun getAll(): List<PRServiceLogEntity>

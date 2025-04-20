@@ -26,7 +26,7 @@ import io.alexarix.pushreader.activity.MainActivity
 import io.alexarix.pushreader.repo.Repo
 import io.alexarix.pushreader.repo.SPM
 import io.alexarix.pushreader.repo.room.entity.PRLogEntity
-import io.alexarix.pushreader.services.PushReaderService4
+import io.alexarix.pushreader.services.PushReaderService6
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -147,7 +147,7 @@ class MainViewModel @Inject constructor(
                     "${it.service.className} ").e
         }
 
-        return result.map { it.service.className }.contains(PushReaderService4::class.java.name)
+        return result.map { it.service.className }.contains(PushReaderService6::class.java.name)
     }
 
     private fun getRunningServicesForApp(): List<ActivityManager.RunningServiceInfo> {
@@ -196,7 +196,7 @@ class MainViewModel @Inject constructor(
         val intent =
             Intent(
                 activity,
-                PushReaderService4::class.java
+                PushReaderService6::class.java
             )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             activity.startForegroundService(intent)

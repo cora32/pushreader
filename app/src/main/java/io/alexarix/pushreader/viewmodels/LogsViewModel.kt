@@ -26,9 +26,17 @@ class LogsViewModel @Inject constructor(
 ) : AndroidViewModel(application = application),
     DefaultLifecycleObserver {
     private val _isLogEnabled = mutableStateOf<Boolean>(repo.isLogEnabled())
+    private val _isShowUnknown = mutableStateOf<Boolean>(repo.isShowUnknownEnabled())
+    private val _isShowInfo = mutableStateOf<Boolean>(repo.isShowInfoEnabled())
+    private val _isShowOk = mutableStateOf<Boolean>(repo.isShowOkEnabled())
+    private val _isShowErrors = mutableStateOf<Boolean>(repo.isShowErrorsEnabled())
     private val _logs = mutableStateOf<List<PRServiceLogEntity>>(listOf())
     private val _isLoading = mutableStateOf<Boolean>(true)
 
+    val isShowErrors: State<Boolean> = _isShowErrors
+    val isShowInfo: State<Boolean> = _isShowInfo
+    val isShowOk: State<Boolean> = _isShowOk
+    val isShowUnknown: State<Boolean> = _isShowUnknown
     val isLogEnabled: State<Boolean> = _isLogEnabled
     val logs: State<List<PRServiceLogEntity>> = _logs
     val isLoading: State<Boolean> = _isLoading
@@ -50,7 +58,14 @@ class LogsViewModel @Inject constructor(
     private fun getLogs() {
         _isLoading.value = true
         viewModelScope.launch(bgDispatcher) {
-            _logs.value = repo.getLogs()
+            _logs.value = repo.getLogs(
+                getUnknown = repo.isShowUnknownEnabled(),
+                getInfo = repo.isShowInfoEnabled(),
+                getOk = repo.isShowOkEnabled(),
+                getErrors = repo.isShowErrorsEnabled(),
+            ).apply {
+                "Logs: We got ${this.size} entries".e
+            }
             _isLoading.value = false
         }
     }
@@ -61,6 +76,38 @@ class LogsViewModel @Inject constructor(
         getLogs()
     }
 
-    fun toggleLog(value: Boolean) =
-        viewModelScope.launch(bgDispatcher) { repo.toggleLog(value = value) }
+    fun toggleLog(value: Boolean) {
+        viewModelScope.launch(bgDispatcher) {
+
+            repo.toggleLog(value = value)
+
+            _isLogEnabled.value = repo.isLogEnabled()
+        }
+
+        getLogs()
+    }
+
+    fun toggleShowErrors(value: Boolean) {
+        repo.toggleShowErrors(value = value)
+
+        getLogs()
+    }
+
+    fun toggleShowInfo(value: Boolean) {
+        repo.toggleShowInfo(value = value)
+
+        getLogs()
+    }
+
+    fun toggleShowOk(value: Boolean) {
+        repo.toggleShowOk(value = value)
+
+        getLogs()
+    }
+
+    fun toggleShowUnknown(value: Boolean) {
+        repo.toggleShowUnknown(value = value)
+
+        getLogs()
+    }
 }

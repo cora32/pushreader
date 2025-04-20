@@ -17,6 +17,7 @@ interface PRDao {
     @Query("SELECT * FROM PRLogEntity WHERE packageName = :packageName")
     suspend fun getLogsForPackage(packageName: String): List<PRLogEntity>
 
+
     @Query("SELECT COUNT(*) FROM PRLogEntity WHERE title = :title")
     suspend fun countUniqueByTitle(title: String): Int
 
@@ -40,6 +41,31 @@ interface PRDao {
 
     @Query("SELECT COUNT(*) FROM PRLogEntity WHERE subText = :subText")
     suspend fun countUniqueBySubText(subText: String): Int
+
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE summaryText IS NULL")
+    suspend fun countNullSummary(): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE title IS NULL")
+    suspend fun countNullTitle(): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE tickerText IS NULL")
+    suspend fun countNullTickerText(): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE bigTitle IS NULL")
+    suspend fun countNullBigTitle(): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE text IS NULL")
+    suspend fun countNullText(): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE bigText IS NULL")
+    suspend fun countNullBigText(): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE infoText IS NULL")
+    suspend fun countNullInfoText(): Int
+
+    @Query("SELECT COUNT(*) FROM PRLogEntity WHERE subText IS NULL")
+    suspend fun countNullSubText(): Int
 
     @Query("UPDATE PRLogEntity SET isSent = :value WHERE uid = :id")
     suspend fun setIsSent(id: Long, value: Boolean)
